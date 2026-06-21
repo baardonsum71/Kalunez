@@ -5,7 +5,7 @@ export const SUBSCRIPTION_PLANS = [
   {
     id: 'pro_monthly',
     name: 'Pro Monthly',
-    price: '$9.99',
+    price: '99 kr',
     period: '/month',
     priceId: import.meta.env.VITE_STRIPE_PRICE_PRO_MONTHLY,
     tier: 'pro',
@@ -89,20 +89,38 @@ export function getPlanByPriceId(priceId) {
   return SUBSCRIPTION_PLANS.find(p => p.priceId === priceId);
 }
 
+function checkoutErrorMessage(err) {
+  const data = err?.data ?? err?.response?.data;
+  if (typeof data === 'string' && data) return data;
+  if (data?.error) return data.error;
+  if (data?.message) return data.message;
+  if (data?.detail) return data.detail;
+  const msg = err?.message || 'Checkout failed';
+  if (msg.includes('status code 500')) {
+    return 'Checkout failed on server. Check Base44 Secrets: STRIPE_API_KEY (sk_test_), STRIPE_ALLOWED_PRICES, and that createCheckoutSession is published.';
+  }
+  return msg;
+}
+
 export async function startSubscriptionCheckout(priceId, { successPath, cancelPath, planId } = {}) {
   if (planId) {
     const { AnalyticsEvents } = await import('@/lib/analytics');
     AnalyticsEvents.subscriptionCheckout(planId, priceId);
   }
 
-  const response = await base44.functions.invoke('createCheckoutSession', {
-    priceId,
-    successPath,
-    cancelPath,
-  });
+  let response;
+  try {
+    response = await base44.functions.invoke('createCheckoutSession', {
+      priceId,
+      successPath,
+      cancelPath,
+    });
+  } catch (err) {
+    throw new Error(checkoutErrorMessage(err));
+  }
 
   const sessionId = response?.sessionId || response?.data?.sessionId;
-  if (!sessionId) throw new Error('No checkout session returned');
+  if (!sessionId) throw new Error(response?.error || 'No checkout session returned');
 
   const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
   if (!key) throw new Error('Stripe publishable key is not configured');

@@ -148,6 +148,16 @@ For Connect testing, use [Stripe Connect test accounts](https://stripe.com/docs/
 
 ## Troubleshooting
 
+**"Request failed with status code 500"** — The real error is hidden until frontend + function are updated. Common causes:
+
+1. **`STRIPE_API_KEY` missing in Base44** — Add `sk_test_...` under Secrets (not `pk_test_`).
+2. **Test/live mismatch** — In Stripe, turn **Test mode** on. Use `pk_test_`, `sk_test_`, and a `price_` from the same test account.
+3. **`STRIPE_ALLOWED_PRICES`** — Must include the exact `price_...` from Vercel `VITE_STRIPE_PRICE_PRO_MONTHLY` (comma-separated, no spaces unless trimmed).
+4. **Function not deployed** — Code in GitHub ≠ live on Base44. Open Base44 → **Functions** → `createCheckoutSession` → paste from `base44/functions/createCheckoutSession/entry.ts` → **Save / Publish**.
+5. **`Subscription` entity missing** — Base44 → **Entities** → ensure `Subscription` exists (import from `base44/entities/Subscription.jsonc`).
+
+After redeploying Vercel + updating the Base44 function, try Subscribe again — you should see a **specific** error message instead of generic 500.
+
 **"Invalid price ID"** — Add the price to `STRIPE_ALLOWED_PRICES` in Base44 secrets.
 
 **"Artist has not set up payouts"** — Artist must complete Connect onboarding first.
