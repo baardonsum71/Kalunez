@@ -24,8 +24,12 @@ export const AuthProvider = ({ children }) => {
       
       // First, check app public settings (with token if available)
       // This will tell us if auth is required, user not registered, etc.
+      const publicApiBase = appParams.appBaseUrl
+        ? `${appParams.appBaseUrl.replace(/\/$/, '')}/api/apps/public`
+        : '/api/apps/public';
+
       const appClient = createAxiosClient({
-        baseURL: `/api/apps/public`,
+        baseURL: publicApiBase,
         headers: {
           'X-App-Id': appParams.appId
         },
@@ -52,10 +56,9 @@ export const AuthProvider = ({ children }) => {
         if (appError.status === 403 && appError.data?.extra_data?.reason) {
           const reason = appError.data.extra_data.reason;
           if (reason === 'auth_required') {
-            setAuthError({
-              type: 'auth_required',
-              message: 'Authentication required'
-            });
+            // Allow anonymous browsing — login is handled per-route via ProtectedRoute
+            setIsLoadingAuth(false);
+            setIsAuthenticated(false);
           } else if (reason === 'user_not_registered') {
             setAuthError({
               type: 'user_not_registered',
@@ -102,10 +105,8 @@ export const AuthProvider = ({ children }) => {
       
       // If user auth fails, it might be an expired token
       if (error.status === 401 || error.status === 403) {
-        setAuthError({
-          type: 'auth_required',
-          message: 'Authentication required'
-        });
+        // Expired/missing token — stay on site as guest
+        setAuthError(null);
       }
     }
   };
