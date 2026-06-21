@@ -12,29 +12,45 @@ Kalunez is a **static Vite frontend** + **Base44 backend**. You deploy the `dist
 
 ## 1. Push to GitHub
 
-If the repo is not on GitHub yet:
+**Your repo:** [github.com/baardonsum71/kalunez](https://github.com/baardonsum71/kalunez)
 
-```bash
-cd /Users/bonsum/Projects/tentacled-stream-vibe-live-3
+Remote is configured as:
 
-# Create empty repo at https://github.com/new (name: kalunez, private recommended)
-git remote add origin git@github.com:YOUR_USERNAME/kalunez.git
-# or HTTPS:
-# git remote add origin https://github.com/YOUR_USERNAME/kalunez.git
-
-git push -u origin main
+```text
+https://github.com/baardonsum71/kalunez.git
 ```
 
-**SSH (recommended):** Generate a key if needed:
+### First-time setup
 
-```bash
-ssh-keygen -t ed25519 -C "baardonsum@hotmail.no"
-cat ~/.ssh/id_ed25519.pub
-```
+1. **Create the empty repo** (if it does not exist yet):  
+   [Create kalunez on GitHub →](https://github.com/new?name=kalunez&owner=baardonsum71)  
+   Do **not** add README, .gitignore, or license — this project already has commits.
 
-Add the public key at [GitHub → Settings → SSH keys](https://github.com/settings/keys).
+2. **Authenticate** (pick one):
 
-**HTTPS:** Use a [Personal Access Token](https://github.com/settings/tokens) as password when pushing.
+   **SSH (recommended)**
+   ```bash
+   ssh-keygen -t ed25519 -C "baardonsum@hotmail.no"
+   cat ~/.ssh/id_ed25519.pub
+   ```
+   Add the key at [GitHub → SSH keys](https://github.com/settings/keys), then:
+   ```bash
+   git remote set-url origin git@github.com:baardonsum71/kalunez.git
+   ```
+
+   **HTTPS + Personal Access Token**
+   - Create token: [github.com/settings/tokens](https://github.com/settings/tokens) (scope: `repo`)
+   - Use the token as password when Git pushes
+
+3. **Push**
+   ```bash
+   cd /Users/bonsum/Projects/tentacled-stream-vibe-live-3
+   git push -u origin main
+   ```
+   Or run the helper script:
+   ```bash
+   chmod +x scripts/github-push.sh && ./scripts/github-push.sh
+   ```
 
 ---
 
@@ -42,8 +58,8 @@ Add the public key at [GitHub → Settings → SSH keys](https://github.com/sett
 
 Config: `vercel.json` (SPA rewrites for React Router).
 
-1. Go to [vercel.com](https://vercel.com) → **Add New Project**
-2. Import your `kalunez` GitHub repo
+1. Push code to [github.com/baardonsum71/kalunez](https://github.com/baardonsum71/kalunez) first
+2. Go to [vercel.com/new](https://vercel.com/new) → Import **baardonsum71/kalunez**
 3. Framework preset: **Vite**
 4. Build command: `npm run build`
 5. Output directory: `dist`
