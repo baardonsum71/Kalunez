@@ -17,8 +17,31 @@ function getAllowedPrices(): Set<string> {
   return new Set(raw.split(',').map(p => p.trim()).filter(Boolean));
 }
 
-function getAppUrl() {
-  return Deno.env.get('BASE44_APP_URL') || 'http://localhost:5173';
+function normalizeAppUrl(raw: string | undefined): string {
+  const fallback = 'https://www.kalunez.com';
+  let url = (raw || fallback).trim();
+  if (!/^https?:\/\//i.test(url)) {
+    url = `https://${url.replace(/^\/+/, '')}`;
+  }
+  try {
+    return new URL(url).origin;
+  } catch {
+    throw new Error(
+      `BASE44_APP_URL is invalid ("${raw ?? ''}"). Set it to https://www.kalunez.com in Base44 Secrets.`,
+    );
+  }
+}
+
+function buildRedirectUrl(base: string, path: string | undefined, fallbackPath: string): string {
+  const rawPath = (path || fallbackPath).trim();
+  const normalizedPath = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
+  const url = `${base}${normalizedPath}`;
+  try {
+    new URL(url);
+    return url;
+  } catch {
+    throw new Error(`Redirect URL is invalid: "${url}"`);
+  }
 }
 
 function fail(message: string, status = 500) {
@@ -61,13 +84,13 @@ Deno.serve(async (req) => {
       // Subscription entity may not exist yet — checkout still works via customer_email.
     }
 
-    const appUrl = getAppUrl().replace(/\/$/, '');
+    const appUrl = normalizeAppUrl(Deno.env.get('BASE44_APP_URL'));
     const sessionParams = {
       payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
       mode: 'subscription',
-      success_url: `${appUrl}${successPath}`,
-      cancel_url: `${appUrl}${cancelPath}`,
+      success_url: buildRedirectUrl(appUrl, successPath, '/subscription?success=true'),
+      cancel_url: buildRedirectUrl(appUrl, cancelPath, '/pricing?canceled=true'),
       metadata: {
         user_email: user.email,
         type: 'subscription',
@@ -87,7 +110,7 @@ Deno.serve(async (req) => {
 
     const session = await stripe.checkout.sessions.create(sessionParams);
 
-    return Response.json({ sessionId: session.id });
+    return Response.json({ sessionId: session.id, url: session.url });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Checkout failed';
     return fail(message, 500);

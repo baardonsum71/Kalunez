@@ -119,7 +119,14 @@ export async function startSubscriptionCheckout(priceId, { successPath, cancelPa
     throw new Error(checkoutErrorMessage(err));
   }
 
+  const checkoutUrl = response?.url || response?.data?.url;
   const sessionId = response?.sessionId || response?.data?.sessionId;
+
+  if (checkoutUrl) {
+    window.location.assign(checkoutUrl);
+    return;
+  }
+
   if (!sessionId) throw new Error(response?.error || 'No checkout session returned');
 
   const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;

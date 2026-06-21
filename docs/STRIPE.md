@@ -60,8 +60,10 @@ STRIPE_API_KEY=sk_live_...          # or sk_test_ for testing
 STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_ALLOWED_PRICES=price_xxx,price_yyy,price_zzz,...
 STRIPE_PLATFORM_FEE_PERCENT=10
-BASE44_APP_URL=https://your-app.base44.app
+BASE44_APP_URL=https://www.kalunez.com
 ```
+
+Must include `https://` — `www.kalunez.com` alone causes Stripe **"Not a valid URL"**.
 
 ---
 
