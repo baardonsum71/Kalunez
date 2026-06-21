@@ -1,0 +1,60 @@
+{
+  "name": "Track",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "artist": {
+      "type": "string"
+    },
+    "genre": {
+      "type": "string",
+      "enum": [
+        "Pop",
+        "Rock",
+        "Hip Hop",
+        "Electronic",
+        "Jazz",
+        "R&B",
+        "Classical",
+        "Country",
+        "Reggae",
+        "Other"
+      ]
+    },
+    "duration": {
+      "type": "number",
+      "description": "Duration in seconds"
+    },
+    "audio_url": {
+      "type": "string"
+    },
+    "cover_url": {
+      "type": "string"
+    },
+    "plays": {
+      "type": "number",
+      "default": 0
+    },
+    "likes": {
+      "type": "number",
+      "default": 0
+    },
+    "description": {
+      "type": "string"
+    },
+    "is_featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "rights_attested_at": {
+      "type": "string",
+      "description": "ISO timestamp when uploader confirmed they hold distribution rights"
+    }
+  },
+  "required": [
+    "title",
+    "artist"
+  ]
+}

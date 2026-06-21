@@ -1,0 +1,33 @@
+{
+  "name": "TrackDraft",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "artist_email": {
+      "type": "string"
+    },
+    "audio_url": {
+      "type": "string"
+    },
+    "collaborator_emails": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "archived"
+      ],
+      "default": "active"
+    }
+  },
+  "required": [
+    "title",
+    "artist_email"
+  ]
+}

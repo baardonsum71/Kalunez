@@ -1,0 +1,88 @@
+{
+  "name": "LiveStream",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "artist": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Music",
+        "Electronic",
+        "Hip Hop",
+        "Rock",
+        "Jazz"
+      ]
+    },
+    "stream_type": {
+      "type": "string",
+      "enum": [
+        "Audio Only",
+        "Video"
+      ]
+    },
+    "description": {
+      "type": "string"
+    },
+    "thumbnail_url": {
+      "type": "string"
+    },
+    "viewer_count": {
+      "type": "number",
+      "default": 0
+    },
+    "reaction_count": {
+      "type": "number",
+      "default": 0
+    },
+    "is_live": {
+      "type": "boolean",
+      "default": true
+    },
+    "stream_url": {
+      "type": "string",
+      "description": "HLS playback URL (Mux) or legacy URL"
+    },
+    "provider": {
+      "type": "string",
+      "enum": [
+        "livekit",
+        "mux"
+      ],
+      "default": "livekit",
+      "description": "Streaming provider: livekit (browser WebRTC) or mux (RTMP/OBS)"
+    },
+    "room_name": {
+      "type": "string",
+      "description": "LiveKit room identifier"
+    },
+    "mux_playback_id": {
+      "type": "string",
+      "description": "Mux playback ID for HLS viewer"
+    },
+    "mux_live_stream_id": {
+      "type": "string",
+      "description": "Mux live stream resource ID"
+    },
+    "ended_at": {
+      "type": "string",
+      "description": "ISO timestamp when the stream ended"
+    },
+    "duration_seconds": {
+      "type": "number",
+      "description": "Total stream duration in seconds"
+    },
+    "rights_attested_at": {
+      "type": "string",
+      "description": "ISO timestamp when broadcaster confirmed performance rights"
+    }
+  },
+  "required": [
+    "title",
+    "artist"
+  ]
+}

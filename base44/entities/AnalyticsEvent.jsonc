@@ -1,0 +1,43 @@
+{
+  "name": "AnalyticsEvent",
+  "type": "object",
+  "properties": {
+    "event_name": {
+      "type": "string",
+      "description": "Event identifier e.g. page_view, track_played"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Authenticated user email if available"
+    },
+    "anonymous_id": {
+      "type": "string",
+      "description": "Persistent anonymous session identifier"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Browser session identifier"
+    },
+    "page_path": {
+      "type": "string"
+    },
+    "entity_type": {
+      "type": "string",
+      "description": "Related entity type: track, stream, artist, etc."
+    },
+    "entity_id": {
+      "type": "string"
+    },
+    "value": {
+      "type": "number",
+      "description": "Numeric value e.g. tip amount in cents"
+    },
+    "properties_json": {
+      "type": "string",
+      "description": "Additional event properties as JSON string"
+    }
+  },
+  "required": [
+    "event_name"
+  ]
+}

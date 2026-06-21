@@ -1,0 +1,33 @@
+{
+  "name": "Comment",
+  "type": "object",
+  "properties": {
+    "content_id": {
+      "type": "string",
+      "description": "ID of the track or VOD"
+    },
+    "content_type": {
+      "type": "string",
+      "enum": [
+        "track",
+        "vod"
+      ]
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "author_email": {
+      "type": "string"
+    },
+    "text": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "content_id",
+    "content_type",
+    "author_name",
+    "author_email",
+    "text"
+  ]
+}

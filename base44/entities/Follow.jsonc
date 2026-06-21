@@ -1,0 +1,16 @@
+{
+  "name": "Follow",
+  "type": "object",
+  "properties": {
+    "follower_email": {
+      "type": "string"
+    },
+    "artist_name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "follower_email",
+    "artist_name"
+  ]
+}

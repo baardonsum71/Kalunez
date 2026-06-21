@@ -1,0 +1,38 @@
+{
+  "name": "Activity",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "like",
+        "playlist_add",
+        "listen"
+      ],
+      "description": "Type of action performed"
+    },
+    "track_id": {
+      "type": "string"
+    },
+    "track_title": {
+      "type": "string"
+    },
+    "artist_name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_email",
+    "user_name",
+    "action_type",
+    "track_id",
+    "track_title",
+    "artist_name"
+  ]
+}

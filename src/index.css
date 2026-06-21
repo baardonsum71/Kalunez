@@ -1,0 +1,170 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+
+    --background: 222 47% 5%;
+    --foreground: 210 40% 98%;
+    --card: 222 40% 9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 40% 9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 199 95% 55%;
+    --primary-foreground: 222 47% 5%;
+    --secondary: 222 35% 15%;
+    --secondary-foreground: 210 30% 85%;
+    --muted: 222 35% 15%;
+    --muted-foreground: 199 40% 65%;
+    --accent: 168 80% 45%;
+    --accent-foreground: 222 47% 5%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 222 30% 16%;
+    --input: 222 35% 15%;
+    --ring: 199 95% 55%;
+    --radius: 0.75rem;
+
+    --sidebar-background: 222 47% 5%;
+    --sidebar-foreground: 210 30% 85%;
+    --sidebar-primary: 199 95% 55%;
+    --sidebar-primary-foreground: 222 47% 5%;
+    --sidebar-accent: 222 35% 15%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 222 30% 16%;
+    --sidebar-ring: 199 95% 55%;
+
+    --font-inter: 'Inter', sans-serif;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      --background: 0 0% 100%;
+      --foreground: 230 35% 7%;
+      --card: 230 30% 97%;
+      --card-foreground: 230 35% 7%;
+      --popover: 230 30% 97%;
+      --popover-foreground: 230 35% 7%;
+      --primary: 270 80% 60%;
+      --primary-foreground: 0 0% 100%;
+      --secondary: 230 25% 90%;
+      --secondary-foreground: 230 35% 20%;
+      --muted: 230 25% 85%;
+      --muted-foreground: 230 15% 40%;
+      --accent: 300 70% 55%;
+      --accent-foreground: 0 0% 100%;
+      --destructive: 0 84% 60%;
+      --destructive-foreground: 0 0% 100%;
+      --border: 230 25% 88%;
+      --input: 230 25% 92%;
+      --ring: 270 80% 60%;
+    }
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  button, a, [role="button"], [role="link"], nav, [role="navigation"], svg, [role="img"], input[type="file"]::file-selector-button {
+    @apply select-none;
+  }
+  body {
+    @apply bg-background text-foreground font-inter;
+  }
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #06b6d4, #10b981);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.logo-gradient-text {
+  background: linear-gradient(90deg, #22d3ee 0%, #7c3aed 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-bg {
+  background: linear-gradient(135deg, #0ea5e9, #10b981);
+}
+
+.hero-gradient {
+  background: linear-gradient(180deg, #020b14 0%, #041423 35%, #041c2c 70%, #030e1a 100%);
+}
+
+.card-gradient {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(219, 39, 119, 0.08));
+}
+
+/* Safe area insets for mobile */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+pb-\[--safe-bottom\] {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Prevent overscroll rubber-banding */
+html, body {
+  overscroll-behavior: none;
+}
+
+/* Route transition */
+.page-enter {
+  opacity: 0;
+  transform: translateX(12px);
+}
+.page-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+/* Scroll preservation for mobile tabs */
+.tab-scroll-container {
+  scroll-behavior: auto;
+}
+
+.tab-scroll-container.preserve-scroll {
+  height: auto;
+}
+
+/* Allow text selection in content areas */
+p, span:not([role="button"]), div:not([role="navigation"]):not([role="button"]), 
+.comment-text, .track-description, .policy-content, .message-text {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Mobile text sizing: upgrade xs to sm in mobile views */
+@media (max-width: 768px) {
+  .text-xs {
+    @apply text-sm;
+  }
+}
+
+/* Mobile touch targets: ensure 44px minimum height */
+@media (max-width: 768px) {
+  button, a, [role="button"], [role="link"] {
+    min-height: 2.75rem; /* 44px */
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "track_upload",
+        "live_stream"
+      ]
+    },
+    "artist_name": {
+      "type": "string"
+    },
+    "content_id": {
+      "type": "string",
+      "description": "ID of the track or live stream"
+    },
+    "content_title": {
+      "type": "string",
+      "description": "Title of the track or stream"
+    },
+    "read": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "user_email",
+    "type",
+    "artist_name",
+    "content_id",
+    "content_title"
+  ]
+}

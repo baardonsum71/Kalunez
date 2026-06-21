@@ -1,0 +1,33 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "subscription_tier": {
+      "type": "string",
+      "enum": [
+        "free",
+        "pro",
+        "premium",
+        "premium_podcast"
+      ],
+      "default": "free"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "user"
+      ],
+      "default": "user"
+    },
+    "profile_picture_url": {
+      "type": "string",
+      "description": "URL to user's profile picture"
+    },
+    "artist_name": {
+      "type": "string",
+      "description": "Public artist display name for tips and profile"
+    }
+  },
+  "required": []
+}
