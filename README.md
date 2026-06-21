@@ -81,6 +81,7 @@ base44/
 Kalunez supports **LiveKit** (browser WebRTC) and **Mux** (OBS/RTMP). See [docs/TESTING.md](docs/TESTING.md) for Vitest and GitHub Actions CI.
 See [docs/ANALYTICS.md](docs/ANALYTICS.md) for PostHog and traction metrics setup.
 See [docs/SENTRY.md](docs/SENTRY.md) for error monitoring setup.
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for GitHub, Vercel, Netlify, and Cloudflare Pages setup.
 See [docs/MUSIC_LICENSING.md](docs/MUSIC_LICENSING.md) for the UGC-only music rights model (no third-party catalog).
 See [docs/STRIPE.md](docs/STRIPE.md) for subscription and Connect setup.
 
