@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { MessageCircle, Send } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { filterRows, createRow } from '@/lib/db';
+import { useAuth } from '@/lib/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 function timeAgo(iso) {
@@ -14,22 +15,18 @@ function timeAgo(iso) {
 }
 
 export default function CommentSection({ contentId, contentType }) {
+  const { user, navigateToLogin } = useAuth();
   const [text, setText] = useState('');
-  const [user, setUser] = useState(null);
   const qc = useQueryClient();
-
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
 
   const { data: comments = [], isLoading } = useQuery({
     queryKey: ['comments', contentId],
-    queryFn: () => base44.entities.Comment.filter({ content_id: contentId }, '-created_date', 50),
+    queryFn: () => filterRows('comments', { content_id: contentId }, '-created_date', 50),
     enabled: !!contentId,
   });
 
   const { mutate: submit, isPending } = useMutation({
-    mutationFn: () => base44.entities.Comment.create({
+    mutationFn: () => createRow('comments', {
       content_id: contentId,
       content_type: contentType,
       author_name: user.full_name || user.email.split('@')[0],
@@ -98,7 +95,7 @@ export default function CommentSection({ contentId, contentType }) {
         <div className="mb-6 bg-secondary/50 border border-border rounded-xl p-4 text-center">
           <p className="text-muted-foreground text-sm mb-2">Sign in to leave a comment</p>
           <button
-            onClick={() => base44.auth.redirectToLogin()}
+            onClick={() => navigateToLogin()}
             className="gradient-bg text-white text-sm px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
           >
             Sign In

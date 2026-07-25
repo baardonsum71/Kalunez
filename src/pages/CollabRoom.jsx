@@ -1,44 +1,41 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { Music, Users, Archive } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { filterRows, createRow, updateRow } from '@/lib/db';
+import { useAuth } from '@/lib/AuthContext';
 import WaveformFeedback from '@/components/WaveformFeedback';
 import InviteCollaborator from '@/components/InviteCollaborator';
 import AudioWaveform from '@/components/AudioWaveform';
 
 export default function CollabRoom() {
   const { draftId } = useParams();
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [currentTime, setCurrentTime] = useState(0);
   const audioRef = useRef(null);
   const qc = useQueryClient();
 
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
-
   const { data: draft, isLoading: draftLoading } = useQuery({
     queryKey: ['collab-draft', draftId],
     queryFn: async () => {
-      const drafts = await base44.entities.TrackDraft.filter({ id: draftId }, '', 1);
+      const drafts = await filterRows('track_drafts', { id: draftId }, '', 1);
       return drafts[0] || null;
     },
   });
 
   const { data: feedbacks = [] } = useQuery({
     queryKey: ['collab-feedback', draftId],
-    queryFn: () => base44.entities.CollabFeedback.filter({ track_draft_id: draftId }, 'timestamp_seconds', 100),
+    queryFn: () => filterRows('collab_feedback', { track_draft_id: draftId }, 'timestamp_seconds', 100),
     enabled: !!draftId,
   });
 
   const { mutate: addFeedback } = useMutation({
-    mutationFn: (data) => base44.entities.CollabFeedback.create({ track_draft_id: draftId, ...data }),
+    mutationFn: (data) => createRow('collab_feedback', { track_draft_id: draftId, ...data }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['collab-feedback', draftId] }),
   });
 
   const { mutate: archiveDraft } = useMutation({
-    mutationFn: () => base44.entities.TrackDraft.update(draftId, { status: 'archived' }),
+    mutationFn: () => updateRow('track_drafts', draftId, { status: 'archived' }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['collab-draft', draftId] }),
   });
 

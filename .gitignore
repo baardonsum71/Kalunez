@@ -32,3 +32,24 @@ coverage
 
 .env
 .vite
+
+# Capacitor / iOS (Xcode project itself IS committed — only build artifacts ignored)
+ios/App/Pods
+ios/App/build
+ios/App/DerivedData
+ios/App/App/public
+ios/**/*.xcuserstate
+ios/**/xcuserdata/
+ios/App/App.xcworkspace/xcuserdata
+*.ipa
+*.xcarchive
+
+# Capacitor / Android (project is committed — build artifacts ignored)
+android/.gradle
+android/app/build
+android/build
+android/captures
+android/local.properties
+android/.idea
+*.apk
+*.aab

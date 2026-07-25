@@ -1,25 +1,23 @@
 import { useState, useEffect } from 'react';
 import { Download, Lock } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { filterRows } from '@/lib/db';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function DownloadButton({ trackTitle, audioUrl, trackId }) {
-  const [user, setUser] = useState(null);
+  const { user, navigateToLogin } = useAuth();
   const [isPro, setIsPro] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   useEffect(() => {
-    base44.auth.me().then(async (u) => {
-      setUser(u);
-      if (u) {
-        const subscriptions = await base44.entities.Subscription.filter({ user_email: u.email, tier: 'pro' }, '', 1);
-        setIsPro(subscriptions.length > 0);
-      }
-    }).catch(() => {});
-  }, []);
+    if (!user) return;
+    filterRows('subscriptions', { user_email: user.email, tier: 'pro' }, '', 1)
+      .then((subscriptions) => setIsPro(subscriptions.length > 0))
+      .catch(() => {});
+  }, [user]);
 
   const handleDownload = () => {
     if (!user) {
-      base44.auth.redirectToLogin();
+      navigateToLogin();
       return;
     }
 

@@ -19,14 +19,12 @@ LiveKit enables artists to go live directly from the browser with WebRTC.
 2. Create a project (free tier: 50 GB/month)
 3. Copy your **API Key**, **API Secret**, and **WebSocket URL**
 
-### 2. Configure Base44 secrets
+### 2. Configure Supabase Edge Function secrets
 
-In Base44 Dashboard → your app → **Secrets**, add:
-
-```
-LIVEKIT_API_KEY=APIxxxxxxxx
-LIVEKIT_API_SECRET=your-secret
-LIVEKIT_URL=wss://your-project.livekit.cloud
+```bash
+supabase secrets set LIVEKIT_API_KEY=APIxxxxxxxx
+supabase secrets set LIVEKIT_API_SECRET=your-secret
+supabase secrets set LIVEKIT_URL=wss://your-project.livekit.cloud
 ```
 
 ### 3. Configure frontend (optional)
@@ -39,7 +37,10 @@ VITE_LIVEKIT_URL=wss://your-project.livekit.cloud
 
 ### 4. Deploy backend functions
 
-Deploy these functions to Base44 (via GitHub sync or Base44 editor):
+```bash
+supabase functions deploy getLiveKitToken
+supabase functions deploy getLiveKitRoomInfo
+```
 
 - `getLiveKitToken` — generates publisher/viewer tokens
 - `getLiveKitRoomInfo` — returns viewer count
@@ -64,11 +65,11 @@ Mux is ideal for professional streamers using OBS Studio, Streamlabs, or hardwar
 3. Go to **Settings → Access Tokens**
 4. Create a token with **Mux Video** read + write permissions
 
-### 2. Configure Base44 secrets
+### 2. Configure Supabase Edge Function secrets
 
-```
-MUX_TOKEN_ID=your-token-id
-MUX_TOKEN_SECRET=your-token-secret
+```bash
+supabase secrets set MUX_TOKEN_ID=your-token-id
+supabase secrets set MUX_TOKEN_SECRET=your-token-secret
 ```
 
 ### 3. Enable Mux in frontend
@@ -80,6 +81,10 @@ VITE_MUX_ENABLED=true
 ```
 
 ### 4. Deploy backend function
+
+```bash
+supabase functions deploy createMuxLiveStream
+```
 
 - `createMuxLiveStream` — creates RTMP ingest + HLS playback
 
@@ -116,7 +121,7 @@ Artist (Browser)                    Viewers
 | `getLiveKitRoomInfo` | Participant count for viewer stats |
 | `createMuxLiveStream` | Create Mux live stream + RTMP credentials |
 
-### Database fields (LiveStream entity)
+### Database fields (`live_streams` table)
 
 | Field | Description |
 |-------|-------------|
@@ -141,7 +146,7 @@ For acquisition demos, the free tiers are sufficient for testing.
 
 ## Troubleshooting
 
-**"LiveKit not configured"** — Add secrets to Base44 and redeploy functions.
+**"LiveKit not configured"** — Add secrets via `supabase secrets set` and redeploy functions.
 
 **"Failed to connect to LiveKit"** — Check `LIVEKIT_URL` uses `wss://` not `https://`.
 

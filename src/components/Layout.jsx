@@ -5,7 +5,7 @@ import FloatingPlayer from '@/components/FloatingPlayer';
 import Footer from '@/components/Footer';
 import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { filterRows } from '@/lib/db';
 import { useAuth } from '@/lib/AuthContext';
 
 const ROOT_SCREENS = ['/', '/discover', '/library', '/live'];
@@ -39,7 +39,7 @@ export default function Layout() {
 
   const { data: notifications = [] } = useQuery({
     queryKey: ['notifications-badge', user?.email],
-    queryFn: () => base44.entities.Notification.filter({ user_email: user.email, read: false }, '-created_date', 100),
+    queryFn: () => filterRows('notifications', { user_email: user.email, read: false }, '-created_date', 100),
     enabled: isAuthenticated && !!user?.email,
     refetchInterval: 30000,
     staleTime: 15000,

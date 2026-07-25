@@ -1,7 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { Music, Clock, Calendar, ChevronLeft } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { filterRows } from '@/lib/db';
 import CommentSection from '@/components/CommentSection';
 import FollowButton from '@/components/FollowButton';
 
@@ -25,7 +25,7 @@ export default function VodDetail() {
 
   const { data: vod, isLoading } = useQuery({
     queryKey: ['vod', id],
-    queryFn: () => base44.entities.LiveStream.filter({ id }, '-created_date', 1).then(r => r[0]),
+    queryFn: () => filterRows('live_streams', { id }, '-created_date', 1).then(r => r[0]),
     enabled: !!id,
   });
 

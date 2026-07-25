@@ -2,7 +2,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Music, Heart, Play, ChevronLeft, Flag } from 'lucide-react';
 import { playTrack } from '@/lib/playerStore';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { filterRows } from '@/lib/db';
 import CommentSection from '@/components/CommentSection';
 import FollowButton from '@/components/FollowButton';
 import AudioWaveform from '@/components/AudioWaveform';
@@ -22,7 +22,7 @@ export default function TrackDetail() {
 
   const { data: track, isLoading } = useQuery({
     queryKey: ['track', id],
-    queryFn: () => base44.entities.Track.filter({ id }, '-created_date', 1).then(r => r[0]),
+    queryFn: () => filterRows('tracks', { id }, '-created_date', 1).then(r => r[0]),
     enabled: !!id,
   });
 

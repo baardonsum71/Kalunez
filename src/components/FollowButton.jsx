@@ -1,6 +1,6 @@
 import { memo, useState } from 'react';
 import { UserPlus, UserCheck } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { filterRows, createRow, deleteRow } from '@/lib/db';
 import { useAuth } from '@/lib/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/components/ui/use-toast';
@@ -13,7 +13,7 @@ function FollowButton({ artistName }) {
   const { data: followId, isLoading } = useQuery({
     queryKey: ['follow', user?.email, artistName],
     queryFn: async () => {
-      const existing = await base44.entities.Follow.filter({
+      const existing = await filterRows('follows', {
         follower_email: user.email,
         artist_name: artistName,
       });
@@ -32,10 +32,10 @@ function FollowButton({ artistName }) {
     }
     try {
       if (followId) {
-        await base44.entities.Follow.delete(followId);
+        await deleteRow('follows', followId);
         toast({ title: 'Unfollowed', description: `You unfollowed ${artistName}` });
       } else {
-        await base44.entities.Follow.create({ follower_email: user.email, artist_name: artistName });
+        await createRow('follows', { follower_email: user.email, artist_name: artistName });
         AnalyticsEvents.followArtist(artistName);
         toast({ title: 'Following', description: `You now follow ${artistName}` });
       }

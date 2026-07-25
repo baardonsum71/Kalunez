@@ -1,34 +1,27 @@
 import { useState } from 'react';
 import { CheckCircle2, Loader2 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
-import { getConfiguredPlans, startSubscriptionCheckout } from '@/lib/stripe';
+import { useAuth } from '@/lib/AuthContext';
+import { getConfiguredPlans, purchasePlan } from '@/lib/revenuecat';
 
 export default function Pricing() {
+  const { user, navigateToLogin } = useAuth();
   const [loadingId, setLoadingId] = useState(null);
   const [error, setError] = useState('');
   const plans = getConfiguredPlans();
 
   const handleSubscribe = async (plan) => {
     setError('');
-    const user = await base44.auth.me().catch(() => null);
     if (!user) {
-      base44.auth.redirectToLogin();
-      return;
-    }
-    if (!plan.priceId) {
-      setError(`Plan "${plan.name}" is not configured yet.`);
+      navigateToLogin();
       return;
     }
 
     setLoadingId(plan.id);
     try {
-      await startSubscriptionCheckout(plan.priceId, {
-        successPath: '/subscription?success=true',
-        cancelPath: '/pricing?canceled=true',
-        planId: plan.id,
-      });
+      await purchasePlan(plan.id);
     } catch (err) {
       setError(err.message || 'Checkout failed');
+    } finally {
       setLoadingId(null);
     }
   };
@@ -39,7 +32,7 @@ export default function Pricing() {
         <div className="text-center max-w-md">
           <h1 className="text-2xl font-bold text-white mb-2">Pricing Not Configured</h1>
           <p className="text-muted-foreground text-sm">
-            Add Stripe price IDs to <code className="text-purple-400">.env.local</code> — see docs/STRIPE.md
+            Add your RevenueCat public key to <code className="text-purple-400">.env.local</code> — see docs/REVENUECAT_SETUP.md
           </p>
         </div>
       </div>

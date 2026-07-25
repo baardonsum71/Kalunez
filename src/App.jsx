@@ -5,7 +5,6 @@ import { queryClientInstance } from '@/lib/query-client';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
-import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Layout from '@/components/Layout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -41,6 +40,8 @@ const CollabRoom = lazy(() => import('@/pages/CollabRoom'));
 const ActivityFeed = lazy(() => import('@/pages/ActivityFeed'));
 const ArtistProfile = lazy(() => import('@/pages/ArtistProfile'));
 const Analytics = lazy(() => import('@/pages/Analytics'));
+const CreateEvent = lazy(() => import('@/pages/CreateEvent'));
+const Login = lazy(() => import('@/pages/Login'));
 
 const LoginPrompt = () => {
   const { navigateToLogin } = useAuth();
@@ -62,7 +63,7 @@ const LoginPrompt = () => {
 };
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings } = useAuth();
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
@@ -72,13 +73,10 @@ const AuthenticatedApp = () => {
     );
   }
 
-  if (authError?.type === 'user_not_registered') {
-    return <UserNotRegisteredError />;
-  }
-
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
+        <Route path="/login" element={<Login />} />
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
           <Route path="/discover" element={<Discover />} />
@@ -102,6 +100,7 @@ const AuthenticatedApp = () => {
             <Route path="/upload" element={<Upload />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/go-live" element={<GoLive />} />
+            <Route path="/create-event" element={<CreateEvent />} />
             <Route path="/artist-dashboard" element={<ArtistDashboard />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/messages/:threadId" element={<MessageThread />} />

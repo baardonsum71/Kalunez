@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { DollarSign, X, Heart, Loader2 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
-import { startTipCheckout, TIP_AMOUNTS } from '@/lib/stripe';
+import { useAuth } from '@/lib/AuthContext';
+import { purchaseTip, TIP_AMOUNTS } from '@/lib/revenuecat';
 import { toast } from '@/components/ui/use-toast';
 import { AnalyticsEvents } from '@/lib/analytics';
 
 export default function TipButton({ artistName }) {
+  const { user, navigateToLogin } = useAuth();
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(5);
   const [loading, setLoading] = useState(false);
@@ -15,15 +16,13 @@ export default function TipButton({ artistName }) {
     setLoading(true);
     setError('');
     try {
-      const me = await base44.auth.me().catch(() => null);
-      if (!me) {
-        base44.auth.redirectToLogin();
+      if (!user) {
+        navigateToLogin();
         return;
       }
       AnalyticsEvents.tipInitiated(artistName, selected);
-      await startTipCheckout(artistName, selected, {
-        returnUrl: window.location.pathname,
-      });
+      await purchaseTip(artistName, selected);
+      setOpen(false);
     } catch (err) {
       const msg = err.message || 'Could not process tip';
       setError(msg);
@@ -57,7 +56,7 @@ export default function TipButton({ artistName }) {
 
             <h3 className="text-white font-bold text-lg mb-1">Send a Tip</h3>
             <p className="text-muted-foreground text-sm mb-5">
-              Support <span className="text-purple-400">{artistName}</span> — paid via Stripe, 90% goes to the artist
+              Support <span className="text-purple-400">{artistName}</span> — 90% goes to the artist
             </p>
 
             <div className="grid grid-cols-3 gap-3 mb-5">
@@ -92,11 +91,11 @@ export default function TipButton({ artistName }) {
               ) : (
                 <Heart className="w-4 h-4" />
               )}
-              {loading ? 'Redirecting to Stripe...' : `Send $${selected} Tip`}
+              {loading ? 'Processing...' : `Send $${selected} Tip`}
             </button>
 
             <p className="text-muted-foreground text-xs text-center mt-3">
-              Secure payment powered by Stripe Connect
+              Secure payment powered by RevenueCat
             </p>
           </div>
         </div>

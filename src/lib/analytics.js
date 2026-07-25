@@ -1,5 +1,6 @@
 import posthog from 'posthog-js';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
+import { createRow } from '@/lib/db';
 import { hasAnalyticsConsent } from '@/lib/cookieConsent';
 
 const KEY_EVENTS = new Set([
@@ -64,7 +65,7 @@ async function persistEvent(eventName, properties = {}) {
   if (!KEY_EVENTS.has(eventName)) return;
 
   try {
-    await base44.entities.AnalyticsEvent.create({
+    await createRow('analytics_events', {
       event_name: eventName,
       user_email: properties.user_email || undefined,
       anonymous_id: getAnonymousId(),
@@ -177,11 +178,15 @@ export const AnalyticsEvents = {
 };
 
 export async function getPlatformAnalytics() {
-  return base44.functions.invoke('getPlatformAnalytics', {});
+  const { data, error } = await supabase.functions.invoke('getPlatformAnalytics', { body: {} });
+  if (error) throw error;
+  return data;
 }
 
 export async function getArtistAnalytics(days = 30) {
-  return base44.functions.invoke('getArtistAnalytics', { days });
+  const { data, error } = await supabase.functions.invoke('getArtistAnalytics', { body: { days } });
+  if (error) throw error;
+  return data;
 }
 
 export function formatAnalyticsCurrency(cents) {

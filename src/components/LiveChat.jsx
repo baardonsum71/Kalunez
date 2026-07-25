@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Send } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { filterRows, createRow, subscribeRows } from '@/lib/db';
 
 export default function LiveChat({ streamId }) {
   const [messages, setMessages] = useState([]);
@@ -11,15 +11,14 @@ export default function LiveChat({ streamId }) {
 
   useEffect(() => {
     // Load existing messages
-    base44.entities.ChatMessage.filter({ stream_id: streamId }, 'created_date', 100).then(setMessages);
+    filterRows('chat_messages', { stream_id: streamId }, 'created_date', 100).then(setMessages);
 
     // Subscribe to new messages in real-time
-    const unsubscribe = base44.entities.ChatMessage.subscribe((event) => {
-      if (event.data?.stream_id !== streamId) return;
-      if (event.type === 'create') {
-        setMessages(prev => [...prev, event.data]);
+    const unsubscribe = subscribeRows('chat_messages', (payload) => {
+      if (payload.eventType === 'INSERT' && payload.new?.stream_id === streamId) {
+        setMessages(prev => [...prev, payload.new]);
       }
-    });
+    }, { column: 'stream_id', value: streamId });
     return unsubscribe;
   }, [streamId]);
 
@@ -30,7 +29,7 @@ export default function LiveChat({ streamId }) {
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
-    await base44.entities.ChatMessage.create({
+    await createRow('chat_messages', {
       stream_id: streamId,
       sender_name: name || 'Anonymous',
       message: input.trim(),

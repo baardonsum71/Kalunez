@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { ListMusic, Plus, X, Trash2, ChevronLeft, Music } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { listRows, createRow, deleteRow, updateRow } from '@/lib/db';
+import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
 
 export default function Playlists() {
+  const { user } = useAuth();
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -13,17 +15,17 @@ export default function Playlists() {
 
   const { data: playlists = [], isLoading } = useQuery({
     queryKey: ['playlists'],
-    queryFn: () => base44.entities.Playlist.list('-created_date', 50),
+    queryFn: () => listRows('playlists', '-created_date', 50),
   });
 
   const { data: tracks = [] } = useQuery({
     queryKey: ['all-tracks-for-playlists'],
-    queryFn: () => base44.entities.Track.list('-created_date', 200),
+    queryFn: () => listRows('tracks', '-created_date', 200),
     enabled: !!selected,
   });
 
   const create = useMutation({
-    mutationFn: (data) => base44.entities.Playlist.create(data),
+    mutationFn: (data) => createRow('playlists', { ...data, created_by: user?.email }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['playlists'] });
       setShowForm(false);
@@ -33,7 +35,7 @@ export default function Playlists() {
   });
 
   const deletePlaylist = useMutation({
-    mutationFn: (id) => base44.entities.Playlist.delete(id),
+    mutationFn: (id) => deleteRow('playlists', id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['playlists'] });
       setSelected(null);
@@ -42,7 +44,7 @@ export default function Playlists() {
 
   const removeTrack = useMutation({
     mutationFn: ({ playlist, trackId }) =>
-      base44.entities.Playlist.update(playlist.id, {
+      updateRow('playlists', playlist.id, {
         track_ids: (playlist.track_ids || []).filter((id) => id !== trackId),
       }),
     onSuccess: (updated) => {

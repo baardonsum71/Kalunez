@@ -1,0 +1,178 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2575.7">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'Helvetica Light'}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'Helvetica Light'; min-height: 14.0px}
+  </style>
+</head>
+<body>
+<p class="p1"># Kalunez — Confidential Product Overview (CIM)</p>
+<p class="p1">**For Acquire.com curation review**</p>
+<p class="p2"><br></p>
+<p class="p1">| Field | Detail |</p>
+<p class="p1">|-------|--------|</p>
+<p class="p1">| **Product** | Kalunez |</p>
+<p class="p1">| **URL** | https://www.kalunez.com |</p>
+<p class="p1">| **Type** | Pre-revenue SaaS / asset sale |</p>
+<p class="p1">| **Seller** | Baard Onsum (Norway) |</p>
+<p class="p1">| **Status** | Production-deployed, never commercially launched |</p>
+<p class="p1">| **Revenue** | $0 MRR (intentional — clean handover) |</p>
+<p class="p2"><br></p>
+<p class="p1">---</p>
+<p class="p2"><br></p>
+<p class="p1">## 1. Executive summary</p>
+<p class="p2"><br></p>
+<p class="p1">Kalunez is a **production-ready** virtual concert and music streaming platform. It was built so artists can upload music, go live, connect with fans, and monetize via **Stripe subscriptions** and **Connect tips**.</p>
+<p class="p2"><br></p>
+<p class="p1">The product is **live at www.kalunez.com**, fully documented, and tested in Stripe sandbox. There are **no users, no marketing spend, and no revenue** — the seller is transferring a completed asset to a buyer with go-to-market capability.</p>
+<p class="p2"><br></p>
+<p class="p1">**Included in sale:** domain (kalunez.com), GitHub codebase, Base44 backend app, brand, documentation, seller handover support.</p>
+<p class="p2"><br></p>
+<p class="p1">---</p>
+<p class="p2"><br></p>
+<p class="p1">## 2. Product walkthrough (pages)</p>
+<p class="p2"><br></p>
+<p class="p1">| URL | Purpose |</p>
+<p class="p1">|-----|---------|</p>
+<p class="p1">| `/` | Home — hero, featured content |</p>
+<p class="p1">| `/discover` | Music discovery |</p>
+<p class="p1">| `/pricing` | Subscription plans → Stripe Checkout |</p>
+<p class="p1">| `/pro` | Pro subscription landing |</p>
+<p class="p1">| `/for-artists` | Artist value proposition |</p>
+<p class="p1">| `/upload` | Track upload + rights attestation |</p>
+<p class="p1">| `/go-live` | LiveKit (browser) or Mux (OBS) setup |</p>
+<p class="p1">| `/live` | Live stream directory |</p>
+<p class="p1">| `/library`, `/playlists` | Listener library |</p>
+<p class="p1">| `/artist-dashboard` | Connect onboarding, tips, analytics |</p>
+<p class="p1">| `/terms`, `/privacy`, `/dmca`, `/cookies` | Legal compliance |</p>
+<p class="p2"><br></p>
+<p class="p1">**Screenshots:** See `docs/acquire-screenshots/` (8 PNG files).</p>
+<p class="p2"><br></p>
+<p class="p1">---</p>
+<p class="p2"><br></p>
+<p class="p1">## 3. Architecture overview</p>
+<p class="p2"><br></p>
+<p class="p1">```</p>
+<p class="p1">┌─────────────────────────────────────────────────────────────┐</p>
+<p class="p1">│<span class="Apple-converted-space">  </span>www.kalunez.com (Vercel — static React/Vite SPA) <span class="Apple-converted-space">          </span>│</p>
+<p class="p1">│<span class="Apple-converted-space">  </span>React 18 · Vite 6 · Tailwind · shadcn/ui · PWA <span class="Apple-converted-space">            </span>│</p>
+<p class="p1">└──────────────────────────┬──────────────────────────────────┘</p>
+<p class="p1"><span class="Apple-converted-space">                           </span>│ API / auth</p>
+<p class="p1"><span class="Apple-converted-space">                           </span>▼</p>
+<p class="p1">┌─────────────────────────────────────────────────────────────┐</p>
+<p class="p1">│<span class="Apple-converted-space">  </span>Base44 (serverless backend)<span class="Apple-converted-space">                                </span>│</p>
+<p class="p1">│<span class="Apple-converted-space">  </span>· Auth · Entities (Track, LiveStream, Subscription, …)<span class="Apple-converted-space">    </span>│</p>
+<p class="p1">│<span class="Apple-converted-space">  </span>· Functions: createCheckoutSession, handleStripeWebhook, <span class="Apple-converted-space">  </span>│</p>
+<p class="p1">│<span class="Apple-converted-space">    </span>createTipCheckout, createConnectAccount, getLiveKitToken │</p>
+<p class="p1">└──────────┬─────────────────────────────┬────────────────────┘</p>
+<p class="p1"><span class="Apple-converted-space">           </span>│ <span class="Apple-converted-space">                            </span>│</p>
+<p class="p1"><span class="Apple-converted-space">           </span>▼ <span class="Apple-converted-space">                            </span>▼</p>
+<p class="p1"><span class="Apple-converted-space">    </span>┌─────────────┐<span class="Apple-converted-space">              </span>┌──────────────┐</p>
+<p class="p1"><span class="Apple-converted-space">    </span>│ <span class="Apple-converted-space">  </span>Stripe<span class="Apple-converted-space">    </span>│<span class="Apple-converted-space">              </span>│ LiveKit/Mux<span class="Apple-converted-space">  </span>│</p>
+<p class="p1"><span class="Apple-converted-space">    </span>│ Checkout<span class="Apple-converted-space">    </span>│<span class="Apple-converted-space">              </span>│ Live stream<span class="Apple-converted-space">  </span>│</p>
+<p class="p1"><span class="Apple-converted-space">    </span>│ Connect <span class="Apple-converted-space">    </span>│<span class="Apple-converted-space">              </span>└──────────────┘</p>
+<p class="p1"><span class="Apple-converted-space">    </span>│ Webhooks<span class="Apple-converted-space">    </span>│</p>
+<p class="p1"><span class="Apple-converted-space">    </span>└─────────────┘</p>
+<p class="p1">```</p>
+<p class="p2"><br></p>
+<p class="p1">**Frontend repo:** github.com/baardonsum71/Kalunez <span class="Apple-converted-space"> </span></p>
+<p class="p1">**Entity schemas:** `base44/entities/*.jsonc` <span class="Apple-converted-space"> </span></p>
+<p class="p1">**Backend functions:** `base44/functions/*/entry.ts`</p>
+<p class="p2"><br></p>
+<p class="p1">---</p>
+<p class="p2"><br></p>
+<p class="p1">## 4. Stripe monetization workflow</p>
+<p class="p2"><br></p>
+<p class="p1">### Subscriptions (listeners)</p>
+<p class="p1">1. User visits `/pricing` → selects plan</p>
+<p class="p1">2. Frontend calls `createCheckoutSession` (Base44 function)</p>
+<p class="p1">3. Stripe Checkout session created → redirect</p>
+<p class="p1">4. On payment: `handleStripeWebhook` receives events</p>
+<p class="p1">5. `Subscription` entity + user tier updated</p>
+<p class="p2"><br></p>
+<p class="p1">**Test verified:** Sandbox checkout with card `4242…` → success page displayed.</p>
+<p class="p2"><br></p>
+<p class="p1">### Artist tips (Connect)</p>
+<p class="p1">1. Artist completes Connect onboarding (`createConnectAccount`)</p>
+<p class="p1">2. Fan clicks Tip → `createTipCheckout`</p>
+<p class="p1">3. 90% to artist / 10% platform fee</p>
+<p class="p1">4. Webhook records `Tip` entity</p>
+<p class="p2"><br></p>
+<p class="p1">**Secrets (Base44):** `STRIPE_API_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_ALLOWED_PRICES`, `BASE44_APP_URL`</p>
+<p class="p2"><br></p>
+<p class="p1">**Docs:** `docs/STRIPE.md`</p>
+<p class="p2"><br></p>
+<p class="p1">---</p>
+<p class="p2"><br></p>
+<p class="p1">## 5. Production readiness evidence</p>
+<p class="p2"><br></p>
+<p class="p1">| Item | Status |</p>
+<p class="p1">|------|--------|</p>
+<p class="p1">| Custom domain + HTTPS | ✅ kalunez.com |</p>
+<p class="p1">| Stripe checkout end-to-end | ✅ Test mode |</p>
+<p class="p1">| Legal pages + cookie consent | ✅ |</p>
+<p class="p1">| UGC licensing documented | ✅ docs/MUSIC_LICENSING.md |</p>
+<p class="p1">| CI/tests | ✅ Vitest + GitHub Actions |</p>
+<p class="p1">| Error monitoring ready | ✅ Sentry (env-gated) |</p>
+<p class="p1">| Analytics ready | ✅ PostHog (consent-gated) |</p>
+<p class="p1">| PWA / offline playback | ✅ |</p>
+<p class="p1">| Deployment docs | ✅ docs/DEPLOYMENT.md |</p>
+<p class="p2"><br></p>
+<p class="p1">---</p>
+<p class="p2"><br></p>
+<p class="p1">## 6. Development scope (replacement cost estimate)</p>
+<p class="p2"><br></p>
+<p class="p1">| Area | Scope |</p>
+<p class="p1">|------|-------|</p>
+<p class="p1">| Frontend | 22+ pages, player, PWA, lazy routes, UI system |</p>
+<p class="p1">| Backend | 10+ serverless functions, 15+ entity schemas |</p>
+<p class="p1">| Payments | Stripe Checkout, Subscriptions, Connect, webhooks |</p>
+<p class="p1">| Live streaming | LiveKit WebRTC + Mux RTMP integration |</p>
+<p class="p1">| Legal/compliance | Terms, Privacy, DMCA, Cookies, attestation flows |</p>
+<p class="p1">| Testing/CI | Unit tests, build pipeline |</p>
+<p class="p2"><br></p>
+<p class="p1">**Estimated agency rebuild:** $100,000–$200,000 / 12–18 months (illustrative).</p>
+<p class="p2"><br></p>
+<p class="p1">---</p>
+<p class="p2"><br></p>
+<p class="p1">## 7. Why pre-revenue</p>
+<p class="p2"><br></p>
+<p class="p1">The seller built the platform as a **transferable asset** and did not commercially launch or market it. Zero revenue reflects **no go-to-market execution**, not product failure.</p>
+<p class="p2"><br></p>
+<p class="p1">**Ideal acquirer:** Operator with artist acquisition, marketing budget, and music/creator industry relationships.</p>
+<p class="p2"><br></p>
+<p class="p1">---</p>
+<p class="p2"><br></p>
+<p class="p1">## 8. Handover checklist (seller commits)</p>
+<p class="p2"><br></p>
+<p class="p1">- [ ] Transfer kalunez.com domain (Spaceship)</p>
+<p class="p1">- [ ] Transfer GitHub repository</p>
+<p class="p1">- [ ] Transfer Base44 app + secrets documentation</p>
+<p class="p1">- [ ] Transfer Vercel project</p>
+<p class="p1">- [ ] 14–30 days post-sale Q&amp;A support</p>
+<p class="p1">- [ ] Walkthrough call (Loom or live)</p>
+<p class="p2"><br></p>
+<p class="p1">---</p>
+<p class="p2"><br></p>
+<p class="p1">## 9. Supporting files in repo</p>
+<p class="p2"><br></p>
+<p class="p1">| Document | Path |</p>
+<p class="p1">|----------|------|</p>
+<p class="p1">| Stripe setup | `docs/STRIPE.md` |</p>
+<p class="p1">| Deployment | `docs/DEPLOYMENT.md` |</p>
+<p class="p1">| Music licensing | `docs/MUSIC_LICENSING.md` |</p>
+<p class="p1">| Streaming | `docs/STREAMING.md` |</p>
+<p class="p1">| Screenshots | `docs/acquire-screenshots/*.png` |</p>
+<p class="p1">| Acquire listing copy | `docs/ACQUIRE_LISTING.md` |</p>
+<p class="p2"><br></p>
+<p class="p1">---</p>
+<p class="p2"><br></p>
+<p class="p1">*Confidential — prepared for Acquire.com curation review. Not a financial projection or offer to sell securities.*</p>
+</body>
+</html>

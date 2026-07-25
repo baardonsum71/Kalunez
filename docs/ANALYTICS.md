@@ -37,7 +37,7 @@ For EU hosting use `https://eu.i.posthog.com`.
 
 ## Step 3: Admin access
 
-Set a user's `role` to `admin` in Base44 to access `/analytics`.
+Set a user's `role` to `admin` in the Supabase `profiles` table to access `/analytics`.
 
 ---
 

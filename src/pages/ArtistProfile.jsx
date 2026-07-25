@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Music, Radio, Heart, ChevronLeft, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { filterRows } from '@/lib/db';
 import TrackCard from '@/components/TrackCard';
 import StreamCard from '@/components/StreamCard';
 import FollowButton from '@/components/FollowButton';
@@ -17,25 +17,25 @@ export default function ArtistProfile() {
 
   const { data: artistUser = null } = useQuery({
     queryKey: ['artist-user', name],
-    queryFn: () => base44.entities.User.filter({ full_name: name }, 'created_date', 1).then(r => r[0]),
+    queryFn: () => filterRows('profiles', { full_name: name }, 'created_date', 1).then(r => r[0]),
     enabled: !!name,
   });
 
   const { data: tracks = [], isLoading: tracksLoading } = useQuery({
     queryKey: ['artist-tracks', name],
-    queryFn: () => base44.entities.Track.filter({ artist: name }, '-created_date', 50),
+    queryFn: () => filterRows('tracks', { artist: name }, '-created_date', 50),
     enabled: !!name,
   });
 
   const { data: streams = [], isLoading: streamsLoading } = useQuery({
     queryKey: ['artist-streams', name],
-    queryFn: () => base44.entities.LiveStream.filter({ artist: name, is_live: true }, '-created_date', 10),
+    queryFn: () => filterRows('live_streams', { artist: name, is_live: true }, '-created_date', 10),
     enabled: !!name,
   });
 
   const { data: followers = [] } = useQuery({
     queryKey: ['artist-followers', name],
-    queryFn: () => base44.entities.Follow.filter({ artist_name: name }, 'created_date', 1000),
+    queryFn: () => filterRows('follows', { artist_name: name }, 'created_date', 1000),
     enabled: !!name,
   });
 

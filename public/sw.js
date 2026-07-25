@@ -9,10 +9,10 @@ const PRECACHE_URLS = ['/', '/index.html'];
 const AUDIO_EXTS = /\.(mp3|wav|ogg|aac|m4a|flac)(\?.*)?$/i;
 const IMAGE_EXTS = /\.(jpg|jpeg|png|webp|gif|svg)(\?.*)?$/i;
 
-// API base44 entity endpoints to cache (network-first with fallback)
+// Supabase REST endpoints to cache (network-first with fallback)
 const API_PATTERNS = [
-  /\/api\/entities\/Track/,
-  /\/api\/entities\/Playlist/,
+  /\/rest\/v1\/tracks/,
+  /\/rest\/v1\/playlists/,
 ];
 
 self.addEventListener('install', (event) => {

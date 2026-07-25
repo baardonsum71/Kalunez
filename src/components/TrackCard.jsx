@@ -5,7 +5,7 @@ import FollowButton from '@/components/FollowButton';
 import { playTrack } from '@/lib/playerStore';
 import AddToPlaylistButton from '@/components/AddToPlaylistButton';
 import DownloadButton from '@/components/DownloadButton';
-import { base44 } from '@/api/base44Client';
+import { updateRow } from '@/lib/db';
 import { toast } from '@/components/ui/use-toast';
 
 function TrackCard({ track }) {
@@ -20,7 +20,7 @@ function TrackCard({ track }) {
     setLiked(!liked);
     setLikes(newLikes);
     try {
-      await base44.entities.Track.update(track.id, { likes: newLikes });
+      await updateRow('tracks', track.id, { likes: newLikes });
     } catch {
       setLiked(wasLiked);
       setLikes(likes);

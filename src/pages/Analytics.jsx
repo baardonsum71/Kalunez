@@ -65,7 +65,7 @@ export default function Analytics() {
   if (error) {
     return (
       <div className="hero-gradient min-h-screen flex items-center justify-center px-4">
-        <p className="text-destructive">Failed to load analytics. Deploy getPlatformAnalytics to Base44.</p>
+        <p className="text-destructive">Failed to load analytics. Deploy getPlatformAnalytics to Supabase.</p>
       </div>
     );
   }

@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Settings as SettingsIcon, Trash2, AlertTriangle, Shield, ChevronRight, KeyRound, Eye, EyeOff, Star, Scale, Cookie, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/lib/AuthContext';
 import { CookieConsentSettings } from '@/components/CookieConsent';
 
 export default function Settings() {
+  const { logout } = useAuth();
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
@@ -20,8 +22,9 @@ export default function Settings() {
     if (pwForm.next !== pwForm.confirm) return setPwError('New passwords do not match.');
     if (pwForm.next.length < 8) return setPwError('Password must be at least 8 characters.');
     setPwLoading(true);
-    await base44.auth.updateMe({ password: pwForm.next });
+    const { error } = await supabase.auth.updateUser({ password: pwForm.next });
     setPwLoading(false);
+    if (error) return setPwError(error.message);
     setPwSuccess(true);
     setPwForm({ current: '', next: '', confirm: '' });
     setTimeout(() => { setChangingPassword(false); setPwSuccess(false); }, 2000);
@@ -30,9 +33,10 @@ export default function Settings() {
   const handleDeleteAccount = async () => {
     setDeleting(true);
     try {
-      await base44.auth.deleteMe();
-      await base44.auth.logout();
-    } catch (error) {
+      const { error } = await supabase.functions.invoke('deleteAccount', { body: {} });
+      if (error) throw error;
+      await logout();
+    } catch {
       setDeleting(false);
     }
   };

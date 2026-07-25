@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Archive, Clock, Music, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { filterRows } from '@/lib/db';
 
 function formatDuration(seconds) {
   if (!seconds) return null;
@@ -24,7 +24,7 @@ export default function ArchivePage() {
 
   const { data: vods = [], isLoading } = useQuery({
     queryKey: ['vods'],
-    queryFn: () => base44.entities.LiveStream.filter({ is_live: false }, '-created_date', 50),
+    queryFn: () => filterRows('live_streams', { is_live: false }, '-created_date', 50),
   });
 
   const filtered = vods.filter(v =>

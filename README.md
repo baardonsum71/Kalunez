@@ -13,15 +13,16 @@ Kalunez is a full-featured music streaming and live broadcasting platform built 
 | Social | Follow artists, activity feed, messages, notifications |
 | Playlists | Create and manage personal playlists |
 | Collaboration | Collab rooms with waveform feedback on track drafts |
-| Monetization | Stripe subscriptions + Connect tips (90/10 split) |
+| Monetization | RevenueCat subscriptions + tips (90/10 split), Stripe Connect for artist payouts |
 | PWA | Installable progressive web app with offline audio caching |
 
 ## Tech Stack
 
 - **Frontend:** React 18, Vite 6, React Router 6, Tailwind CSS, shadcn/ui
 - **State:** TanStack Query, custom player store
-- **Backend:** Base44 (managed NoSQL, auth, serverless functions)
-- **Payments:** Stripe (checkout sessions + webhooks)
+- **Backend:** Supabase (Postgres, Auth, Storage, Edge Functions)
+- **Auth:** Sign in with Apple + email/password (Supabase Auth)
+- **Payments:** RevenueCat (subscriptions + tips) + Stripe Connect (artist payouts only)
 - **Audio:** wavesurfer.js for waveform visualization
 
 ## Quick Start
@@ -29,7 +30,7 @@ Kalunez is a full-featured music streaming and live broadcasting platform built 
 ```bash
 npm install
 cp .env.example .env.local
-# Edit .env.local with your Base44 app credentials
+# Edit .env.local with your Supabase + RevenueCat credentials
 npm run dev
 ```
 
@@ -39,17 +40,15 @@ See [`.env.example`](.env.example) for the full list. Key frontend variables:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `VITE_BASE44_APP_ID` | Yes | Your Base44 app ID |
-| `VITE_BASE44_APP_BASE_URL` | Yes | Your Base44 backend URL |
-| `VITE_BASE44_FUNCTIONS_VERSION` | Optional | Base44 functions version |
-| `VITE_STRIPE_PUBLISHABLE_KEY` | For payments | Stripe publishable key |
-| `VITE_STRIPE_PRICE_*` | For subscriptions | Stripe price IDs per plan |
+| `VITE_SUPABASE_URL` | Yes | Your Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | Yes | Your Supabase anon/public key |
+| `VITE_REVENUECAT_PUBLIC_KEY` | For payments | RevenueCat Web Billing public key |
 | `VITE_POSTHOG_KEY` | For analytics | PostHog (gated by cookie consent) |
 | `VITE_SENTRY_DSN` | For monitoring | Sentry error tracking |
 | `VITE_LIVEKIT_URL` | For browser live | LiveKit WebSocket URL |
 | `VITE_MUX_ENABLED` | For OBS live | Enable Mux RTMP streaming |
 
-Backend secrets (Stripe, LiveKit, Mux) are set in the **Base44 Dashboard**, not in frontend env files.
+Backend secrets (Stripe payout key, LiveKit, Mux, RevenueCat webhook auth) are set as **Supabase Edge Function secrets**, not in frontend env files. See [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md).
 
 ## Scripts
 
@@ -66,14 +65,14 @@ Backend secrets (Stripe, LiveKit, Mux) are set in the **Base44 Dashboard**, not 
 
 ```
 src/
-├── pages/          # 22 route pages
+├── pages/          # 23 route pages (incl. /login)
 ├── components/     # Feature components + shadcn/ui
-├── lib/            # Auth, player store, utilities
-├── api/            # Base44 SDK client
+├── lib/            # Auth, player store, RevenueCat, data-access helpers
+├── api/            # Supabase client
 └── hooks/          # Custom React hooks
-base44/
-├── entities/       # Database schemas
-└── functions/      # Serverless backend (Stripe)
+supabase/
+├── migrations/     # Postgres schema + RLS policies
+└── functions/      # Edge Functions (LiveKit, Mux, analytics, payments)
 ```
 
 ## Live Streaming
@@ -83,7 +82,13 @@ See [docs/ANALYTICS.md](docs/ANALYTICS.md) for PostHog and traction metrics setu
 See [docs/SENTRY.md](docs/SENTRY.md) for error monitoring setup.
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for GitHub, Vercel, Netlify, and Cloudflare Pages setup.
 See [docs/MUSIC_LICENSING.md](docs/MUSIC_LICENSING.md) for the UGC-only music rights model (no third-party catalog).
-See [docs/STRIPE.md](docs/STRIPE.md) for subscription and Connect setup.
+See [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md) for backend setup.
+See [docs/BASE44_CUTOVER.md](docs/BASE44_CUTOVER.md) to finish leaving Base44 (Vercel + Supabase).
+See [docs/APPLE_SIGNIN_SETUP.md](docs/APPLE_SIGNIN_SETUP.md) for Sign in with Apple.
+See [docs/PAYMENTS.md](docs/PAYMENTS.md) for RevenueCat + Stripe Connect payout setup.
+See [docs/CAPACITOR_IOS.md](docs/CAPACITOR_IOS.md) for the native iOS app (Capacitor) and App Store submission.
+See [docs/CAPACITOR_ANDROID.md](docs/CAPACITOR_ANDROID.md) for Android / Google Play.
+See [docs/ACQUIRE_LISTING.md](docs/ACQUIRE_LISTING.md) for Acquire.com listing copy (iOS + Android).
 
 ## Legal & compliance
 
@@ -98,13 +103,11 @@ Cookie consent banner gates PostHog analytics and internal event persistence. Up
 
 ## Deployment
 
-1. Build: `npm run build`
-2. Deploy `dist/` to any static host (Vercel, Netlify, Cloudflare Pages)
-3. Set environment variables on your host (see `.env.example`)
-4. Configure Base44 secrets for Stripe, LiveKit, and Mux
-5. Backend remains on Base44 — no separate server needed for MVP
-
-To migrate off Base44, replace `src/api/base44Client.js` with your own API layer. Entity schemas in `base44/entities/` serve as your data model reference.
+1. Set up Supabase (schema, storage, auth, functions) — see [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md)
+2. Build: `npm run build`
+3. Deploy `dist/` to any static host (Vercel, Netlify, Cloudflare Pages)
+4. Set environment variables on your host (see `.env.example`)
+5. Configure Supabase Edge Function secrets for Stripe (payouts only), LiveKit, Mux, and RevenueCat webhook auth
 
 ## Acquisition Notes
 
@@ -114,19 +117,18 @@ This codebase is structured for transfer:
 - Legal pages (Terms, Privacy, DMCA, Cookies) + cookie consent
 - UGC music licensing strategy documented in [docs/MUSIC_LICENSING.md](docs/MUSIC_LICENSING.md)
 - LiveKit + Mux streaming integrated (configure credentials to enable)
-- Stripe subscriptions + Connect tips (configure price IDs)
+- RevenueCat subscriptions + tips, Stripe Connect for artist payouts (configure keys)
 - PostHog analytics + Sentry monitoring (optional, env-gated)
 - Vitest unit tests + GitHub Actions CI
 - PWA-ready with service worker for offline playback
-- No vendor lock-in on frontend — portable to any backend
+- Fully on Supabase — no proprietary app-builder lock-in
 
 **Recommended next steps for production:**
 - Review [docs/MUSIC_LICENSING.md](docs/MUSIC_LICENSING.md) with legal counsel before scaling
-- Set Stripe price IDs, webhook, and Connect in Base44 Dashboard
+- Complete Supabase, Apple Sign-In, and RevenueCat setup (see `docs/*_SETUP.md`)
 - Add LiveKit/Mux credentials and test end-to-end streaming
 - Deploy frontend and verify cookie consent + legal pages
 - Register DMCA agent (US) if targeting US users at scale
-- Export Base44 data to your own database if migrating backend
 
 ## License
 

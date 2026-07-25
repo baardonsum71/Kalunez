@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Upload as UploadIcon, Music, CheckCircle } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { createRow, uploadFile } from '@/lib/db';
+import { useAuth } from '@/lib/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import MobileSelect from '@/components/MobileSelect';
 import { toast } from '@/components/ui/use-toast';
@@ -10,6 +11,7 @@ import { AnalyticsEvents } from '@/lib/analytics';
 const GENRES = ['Pop', 'Rock', 'Hip Hop', 'Electronic', 'Jazz', 'R&B', 'Classical', 'Country', 'Reggae', 'Other'];
 
 export default function Upload() {
+  const { user } = useAuth();
   const qc = useQueryClient();
   const [form, setForm] = useState({ title: '', artist: '', genre: 'Pop', description: '', duration: '' });
   const [audioFile, setAudioFile] = useState(null);
@@ -36,13 +38,13 @@ export default function Upload() {
     try {
       let audio_url = '';
       let cover_url = '';
-      const audioRes = await base44.integrations.Core.UploadFile({ file: audioFile });
+      const audioRes = await uploadFile('audio', audioFile);
       audio_url = audioRes.file_url;
       if (coverFile) {
-        const coverRes = await base44.integrations.Core.UploadFile({ file: coverFile });
+        const coverRes = await uploadFile('covers', coverFile);
         cover_url = coverRes.file_url;
       }
-      const created = await base44.entities.Track.create({
+      const created = await createRow('tracks', {
         ...form,
         duration: form.duration ? parseInt(form.duration, 10) : 0,
         audio_url,
@@ -50,6 +52,7 @@ export default function Upload() {
         plays: 0,
         likes: 0,
         rights_attested_at: new Date().toISOString(),
+        created_by: user?.email,
       });
       AnalyticsEvents.trackUploaded(created);
       qc.invalidateQueries({ queryKey: ['tracks'] });

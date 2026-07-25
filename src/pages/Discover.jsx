@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Search, TrendingUp, Star, Flame, Music } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { listRows, filterRows } from '@/lib/db';
 import TrackCard from '@/components/TrackCard';
 import PullToRefresh from '@/components/PullToRefresh';
 import MobileSelect from '@/components/MobileSelect';
@@ -42,8 +42,8 @@ export default function Discover() {
   const { data: tracks = [], isLoading } = useQuery({
     queryKey: ['tracks', genre, tab],
     queryFn: () => genre === 'All Genres'
-      ? base44.entities.Track.list('-plays', 50)
-      : base44.entities.Track.filter({ genre }, '-plays', 50),
+      ? listRows('tracks', '-plays', 50)
+      : filterRows('tracks', { genre }, '-plays', 50),
     staleTime: 60000,
   });
 

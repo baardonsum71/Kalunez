@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Send, ChevronLeft, MessageSquare } from 'lucide-react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { filterRows, createRow, updateRow, subscribeRows } from '@/lib/db';
+import { useAuth } from '@/lib/AuthContext';
 
 function timeAgo(iso) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -20,7 +21,7 @@ export default function MessageThread() {
   const recipientEmail = params.get('recipient') || '';
   const recipientName = params.get('recipientName') || recipientEmail;
 
-  const [user, setUser] = useState(null);
+  const { user, navigateToLogin } = useAuth();
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
@@ -28,26 +29,20 @@ export default function MessageThread() {
   const decodedThread = decodeURIComponent(threadId);
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
-
-  useEffect(() => {
     if (!user) return;
     const load = async () => {
       const [sent, recv] = await Promise.all([
-        base44.entities.Message.filter({ thread_id: decodedThread, sender_email: user.email }, 'created_date', 100),
-        base44.entities.Message.filter({ thread_id: decodedThread, recipient_email: user.email }, 'created_date', 100),
+        filterRows('messages', { thread_id: decodedThread, sender_email: user.email }, 'created_date', 100),
+        filterRows('messages', { thread_id: decodedThread, recipient_email: user.email }, 'created_date', 100),
       ]);
       const all = [...sent, ...recv].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
       setMessages(all);
       // Mark received as read
-      recv.filter(m => !m.read).forEach(m => base44.entities.Message.update(m.id, { read: true }));
+      recv.filter(m => !m.read).forEach(m => updateRow('messages', m.id, { read: true }));
     };
     load();
-    const unsub = base44.entities.Message.subscribe((event) => {
-      if (event.data?.thread_id === decodedThread) load();
-    });
-    return () => unsub();
+    const unsub = subscribeRows('messages', () => load());
+    return unsub;
   }, [user, decodedThread]);
 
   useEffect(() => {
@@ -58,7 +53,7 @@ export default function MessageThread() {
     e.preventDefault();
     if (!text.trim() || !user || sending) return;
     setSending(true);
-    await base44.entities.Message.create({
+    await createRow('messages', {
       thread_id: decodedThread,
       sender_email: user.email,
       sender_name: user.full_name || user.email.split('@')[0],
@@ -74,7 +69,7 @@ export default function MessageThread() {
     <div className="hero-gradient min-h-screen flex flex-col items-center justify-center gap-4">
       <MessageSquare className="w-12 h-12 text-purple-400 opacity-50" />
       <p className="text-white text-xl font-semibold">Sign in to view messages</p>
-      <button onClick={() => base44.auth.redirectToLogin()} className="gradient-bg text-white px-6 py-3 rounded-xl font-bold hover:opacity-90">Sign In</button>
+      <button onClick={() => navigateToLogin()} className="gradient-bg text-white px-6 py-3 rounded-xl font-bold hover:opacity-90">Sign In</button>
     </div>
   );
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { UserPlus, X } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { filterRows, updateRow } from '@/lib/db';
 
 export default function InviteCollaborator({ trackDraftId, onInvited }) {
   const [showForm, setShowForm] = useState(false);
@@ -14,9 +14,9 @@ export default function InviteCollaborator({ trackDraftId, onInvited }) {
     setError('');
 
     try {
-      const draft = await base44.entities.TrackDraft.filter({ id: trackDraftId }, '', 1);
+      const draft = await filterRows('track_drafts', { id: trackDraftId }, '', 1);
       if (draft.length > 0) {
-        const updated = await base44.entities.TrackDraft.update(trackDraftId, {
+        const updated = await updateRow('track_drafts', trackDraftId, {
           collaborator_emails: [...new Set([...(draft[0].collaborator_emails || []), email.trim()])],
         });
         setEmail('');

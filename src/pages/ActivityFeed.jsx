@@ -1,20 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Heart, Music, ListMusic, Clock } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { listRows, subscribeRows } from '@/lib/db';
+import { useAuth } from '@/lib/AuthContext';
 import PullToRefresh from '@/components/PullToRefresh';
 
 export default function ActivityFeed() {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const qc = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
-
-  useEffect(() => {
     if (!user) return;
-    const unsubscribe = base44.entities.Activity.subscribe((event) => {
+    const unsubscribe = subscribeRows('activities', () => {
       qc.invalidateQueries({ queryKey: ['activity-feed'] });
     });
     return unsubscribe;
@@ -22,7 +19,7 @@ export default function ActivityFeed() {
 
   const { data: activities = [], isLoading } = useQuery({
     queryKey: ['activity-feed'],
-    queryFn: () => base44.entities.Activity.list('-created_date', 50),
+    queryFn: () => listRows('activities', '-created_date', 50),
   });
 
   const getActionIcon = (actionType) => {

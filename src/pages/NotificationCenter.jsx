@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
 import { Bell, Music, Radio, Check, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { filterRows, updateRow, deleteRow } from '@/lib/db';
+import { useAuth } from '@/lib/AuthContext';
 
 function timeAgo(iso) {
   if (!iso) return '';
@@ -16,36 +16,32 @@ function timeAgo(iso) {
 }
 
 export default function NotificationCenter() {
-  const [user, setUser] = useState(null);
+  const { user, navigateToLogin } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
 
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
-
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ['notifications', user?.email],
-    queryFn: () => base44.entities.Notification.filter({ user_email: user.email }, '-created_date', 100),
+    queryFn: () => filterRows('notifications', { user_email: user.email }, '-created_date', 100),
     enabled: !!user,
     refetchInterval: 3000,
   });
 
   const { mutate: markAsRead } = useMutation({
-    mutationFn: (id) => base44.entities.Notification.update(id, { read: true }),
+    mutationFn: (id) => updateRow('notifications', id, { read: true }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
   });
 
   const { mutate: markAllAsRead } = useMutation({
     mutationFn: async () => {
       const unread = notifications.filter(n => !n.read);
-      await Promise.all(unread.map(n => base44.entities.Notification.update(n.id, { read: true })));
+      await Promise.all(unread.map(n => updateRow('notifications', n.id, { read: true })));
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
   });
 
   const { mutate: deleteNotification } = useMutation({
-    mutationFn: (id) => base44.entities.Notification.delete(id),
+    mutationFn: (id) => deleteRow('notifications', id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
   });
 
@@ -63,7 +59,7 @@ export default function NotificationCenter() {
       <div className="hero-gradient min-h-screen flex flex-col items-center justify-center gap-4">
         <Bell className="w-12 h-12 text-purple-400 opacity-50" />
         <p className="text-white text-xl font-semibold">Sign in to view notifications</p>
-        <button onClick={() => base44.auth.redirectToLogin()} className="gradient-bg text-white px-6 py-3 rounded-xl font-bold hover:opacity-90">
+        <button onClick={() => navigateToLogin()} className="gradient-bg text-white px-6 py-3 rounded-xl font-bold hover:opacity-90">
           Sign In
         </button>
       </div>

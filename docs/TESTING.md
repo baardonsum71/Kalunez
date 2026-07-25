@@ -17,7 +17,7 @@ npm run test:coverage # with coverage report
 | `src/lib/utils.js` | Tailwind class merging |
 | `src/lib/playerStore.js` | Global audio player state |
 | `src/lib/streaming.js` | LiveKit/Mux helpers |
-| `src/lib/stripe.js` | Plan config, formatting |
+| `src/lib/revenuecat.js` | Plan config, formatting |
 | `src/lib/sentry.js` | Safe no-op when disabled |
 | `src/hooks/useDebounce.js` | Debounce timing |
 | `src/components/ErrorBoundary.jsx` | Crash fallback UI |
@@ -43,7 +43,7 @@ src/lib/myModule.test.js
 
 Use `@/` imports — configured in `vitest.config.js`.
 
-Mocks for Base44, PostHog, and Sentry live in `src/test/setup.js`.
+Mocks for Supabase, PostHog, and Sentry live in `src/test/setup.js`.
 
 ## Coverage
 

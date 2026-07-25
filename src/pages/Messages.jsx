@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { MessageSquare, Search, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { filterRows } from '@/lib/db';
+import { useAuth } from '@/lib/AuthContext';
 
 function timeAgo(iso) {
   if (!iso) return '';
@@ -16,26 +17,22 @@ function timeAgo(iso) {
 }
 
 export default function Messages() {
-  const [user, setUser] = useState(null);
+  const { user, navigateToLogin } = useAuth();
   const [search, setSearch] = useState('');
   const [newTo, setNewTo] = useState('');
   const [showNew, setShowNew] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
-
   const { data: messages = [] } = useQuery({
     queryKey: ['my-messages', user?.email],
-    queryFn: () => base44.entities.Message.filter({ sender_email: user.email }, '-created_date', 200),
+    queryFn: () => filterRows('messages', { sender_email: user.email }, '-created_date', 200),
     enabled: !!user,
     refetchInterval: 5000,
   });
 
   const { data: received = [] } = useQuery({
     queryKey: ['received-messages', user?.email],
-    queryFn: () => base44.entities.Message.filter({ recipient_email: user.email }, '-created_date', 200),
+    queryFn: () => filterRows('messages', { recipient_email: user.email }, '-created_date', 200),
     enabled: !!user,
     refetchInterval: 5000,
   });
@@ -63,7 +60,7 @@ export default function Messages() {
     <div className="hero-gradient min-h-screen flex flex-col items-center justify-center gap-4">
       <MessageSquare className="w-12 h-12 text-purple-400 opacity-50" />
       <p className="text-white text-xl font-semibold">Sign in to view messages</p>
-      <button onClick={() => base44.auth.redirectToLogin()} className="gradient-bg text-white px-6 py-3 rounded-xl font-bold hover:opacity-90">Sign In</button>
+      <button onClick={() => navigateToLogin()} className="gradient-bg text-white px-6 py-3 rounded-xl font-bold hover:opacity-90">Sign In</button>
     </div>
   );
 

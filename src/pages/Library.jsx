@@ -1,45 +1,44 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Music, Search, Heart, ListMusic, Plus, Trash2, X } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { listRows, filterRows, createRow, updateRow, deleteRow } from '@/lib/db';
+import { useAuth } from '@/lib/AuthContext';
 import TrackCard from '@/components/TrackCard';
 import PullToRefresh from '@/components/PullToRefresh';
 
 export default function Library() {
+  const { user } = useAuth();
   const [search, setSearch] = useState('');
-  const [user, setUser] = useState(null);
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState('');
   const qc = useQueryClient();
 
-  useEffect(() => { base44.auth.me().then(setUser).catch(() => {}); }, []);
-
   const { data: allTracks = [], isLoading: tracksLoading } = useQuery({
     queryKey: ['library-tracks'],
-    queryFn: () => base44.entities.Track.list('-created_date', 200),
+    queryFn: () => listRows('tracks', '-created_date', 200),
   });
 
   const { data: playlists = [], isLoading: playlistsLoading } = useQuery({
     queryKey: ['my-playlists', user?.email],
-    queryFn: () => base44.entities.Playlist.filter({ created_by: user.email }, '-created_date', 50),
+    queryFn: () => filterRows('playlists', { created_by: user.email }, '-created_date', 50),
     enabled: !!user,
   });
 
   const { mutate: createPlaylist } = useMutation({
-    mutationFn: () => base44.entities.Playlist.create({ name: newName.trim(), track_ids: [], is_public: true }),
+    mutationFn: () => createRow('playlists', { name: newName.trim(), track_ids: [], is_public: true, created_by: user.email }),
     onSuccess: () => { setNewName(''); setShowCreate(false); qc.invalidateQueries({ queryKey: ['my-playlists'] }); },
   });
 
   const { mutate: deletePlaylist } = useMutation({
-    mutationFn: (id) => base44.entities.Playlist.delete(id),
+    mutationFn: (id) => deleteRow('playlists', id),
     onSuccess: () => { setSelectedPlaylist(null); qc.invalidateQueries({ queryKey: ['my-playlists'] }); },
   });
 
   const { mutate: removeFromPlaylist } = useMutation({
     mutationFn: ({ playlistId, trackId }) => {
       const pl = playlists.find(p => p.id === playlistId);
-      return base44.entities.Playlist.update(playlistId, { track_ids: (pl.track_ids || []).filter(id => id !== trackId) });
+      return updateRow('playlists', playlistId, { track_ids: (pl.track_ids || []).filter(id => id !== trackId) });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['my-playlists'] }),
   });

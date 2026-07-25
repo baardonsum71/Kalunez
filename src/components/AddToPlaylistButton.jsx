@@ -1,29 +1,26 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ListPlus, Plus, Check, X } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { filterRows, createRow, updateRow } from '@/lib/db';
+import { useAuth } from '@/lib/AuthContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export default function AddToPlaylistButton({ trackId }) {
+  const { user, navigateToLogin } = useAuth();
   const [open, setOpen] = useState(false);
   const [playlists, setPlaylists] = useState([]);
   const [newName, setNewName] = useState('');
   const [added, setAdded] = useState(null);
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
 
   const load = async () => {
     if (!user) return;
-    const all = await base44.entities.Playlist.filter({ created_by: user.email }, '-created_date', 50);
+    const all = await filterRows('playlists', { created_by: user.email }, '-created_date', 50);
     setPlaylists(all);
   };
 
   const toggle = async (e) => {
     e.stopPropagation();
     e.preventDefault();
-    if (!user) { base44.auth.redirectToLogin(); return; }
+    if (!user) { navigateToLogin(); return; }
     await load();
     setOpen(v => !v);
   };
@@ -42,7 +39,7 @@ export default function AddToPlaylistButton({ trackId }) {
       const ids = playlist.track_ids || [];
       if (ids.includes(trackId)) return;
       if (track?.audio_url) cacheAudio(track.audio_url);
-      return base44.entities.Playlist.update(playlist.id, { track_ids: [...ids, trackId] });
+      return updateRow('playlists', playlist.id, { track_ids: [...ids, trackId] });
     },
     onMutate: async ({ playlist }) => {
       const ids = playlist.track_ids || [];
@@ -66,7 +63,7 @@ export default function AddToPlaylistButton({ trackId }) {
   const { mutate: createAndAdd } = useMutation({
     mutationFn: async () => {
       if (!newName.trim()) return;
-      return base44.entities.Playlist.create({ name: newName.trim(), track_ids: [trackId], is_public: true });
+      return createRow('playlists', { name: newName.trim(), track_ids: [trackId], is_public: true, created_by: user.email });
     },
     onMutate: async () => {
       const optimisticPlaylist = { id: `optimistic-${Date.now()}`, name: newName.trim(), track_ids: [trackId] };

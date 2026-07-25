@@ -1,11 +1,11 @@
 # Deployment Guide — Kalunez
 
-Kalunez is a **static Vite frontend** + **Base44 backend**. You deploy the `dist/` folder; API/auth stays on Base44.
+Kalunez is a **static Vite frontend** + **Supabase backend** (Postgres, Auth, Storage, Edge Functions). You deploy the `dist/` folder; the frontend talks directly to Supabase.
 
 ## Prerequisites
 
 - GitHub repo with this code pushed
-- Base44 app running (App ID in `.env.example`)
+- Supabase project set up — see [docs/SUPABASE_SETUP.md](SUPABASE_SETUP.md)
 - Production env vars set on your host
 
 ---
@@ -67,10 +67,9 @@ Config: `vercel.json` (SPA rewrites for React Router).
 
 | Variable | Value |
 |----------|--------|
-| `VITE_BASE44_APP_ID` | Your Base44 app ID |
-| `VITE_BASE44_APP_BASE_URL` | `https://YOUR-APP.base44.app` |
-| `VITE_STRIPE_PUBLISHABLE_KEY` | `pk_live_...` or `pk_test_...` |
-| `VITE_STRIPE_PRICE_*` | Stripe price IDs |
+| `VITE_SUPABASE_URL` | `https://YOUR-PROJECT-REF.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | Your Supabase anon/public key |
+| `VITE_REVENUECAT_PUBLIC_KEY` | RevenueCat Web Billing public key |
 | `VITE_POSTHOG_KEY` | Optional analytics |
 | `VITE_SENTRY_DSN` | Optional monitoring |
 | `VITE_LIVEKIT_URL` | Optional live streaming |
@@ -103,28 +102,29 @@ Config: `netlify.toml` included.
 
 ---
 
-## 5. Base44 backend secrets
+## 5. Supabase Edge Function secrets
 
-These are **not** frontend env vars — set in **Base44 Dashboard → Secrets**:
+These are **not** frontend env vars — set via `supabase secrets set` or the Supabase Dashboard:
 
-- `STRIPE_API_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_ALLOWED_PRICES`
+- `STRIPE_API_KEY` → payout rail only, see [docs/PAYMENTS.md](PAYMENTS.md)
+- `REVENUECAT_WEBHOOK_AUTH`
 - `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`, `LIVEKIT_URL`
 - `MUX_TOKEN_ID`, `MUX_TOKEN_SECRET`
-- `BASE44_APP_URL` → your deployed frontend URL (for Stripe redirects)
+- `APP_URL` → your deployed frontend URL (for Connect onboarding redirects)
 
-After deploy, update `BASE44_APP_URL` to your production domain.
+After deploy, update `APP_URL` to your production domain and redeploy the affected functions.
 
 ---
 
 ## 6. Post-deploy checklist
 
 - [ ] All routes work (refresh on `/discover`, `/terms`, etc.)
-- [ ] Sign in / sign up via Base44 auth
+- [ ] Sign in / sign up via Supabase Auth (email + Sign in with Apple)
 - [ ] Cookie banner appears; analytics only after consent
 - [ ] Upload track + rights attestation
-- [ ] Stripe checkout (test mode first)
-- [ ] Sync entity schemas in Base44 (`rights_attested_at` on Track/LiveStream)
-- [ ] Stripe webhook URL points to Base44 function endpoint
+- [ ] RevenueCat subscription purchase (sandbox first)
+- [ ] Database migration applied (`supabase db push`)
+- [ ] RevenueCat webhook URL points to `handleRevenueCatWebhook` function
 
 ---
 
@@ -145,6 +145,6 @@ No deploy step yet — connect Vercel/Netlify to GitHub for automatic deploys on
 | Issue | Fix |
 |-------|-----|
 | Blank page after refresh | SPA rewrite missing — check `vercel.json` / Netlify redirects |
-| Auth fails | Wrong `VITE_BASE44_APP_BASE_URL` or app not public |
-| Stripe redirect wrong | Set `BASE44_APP_URL` in Base44 secrets to production URL |
-| Live streaming fails | Add LiveKit/Mux credentials in Base44 + frontend env |
+| Auth fails | Wrong `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY`, or Apple provider not configured |
+| Connect onboarding redirect wrong | Set `APP_URL` in Supabase Edge Function secrets to production URL |
+| Live streaming fails | Add LiveKit/Mux credentials as Supabase Edge Function secrets + frontend env |

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { Play, Upload, Radio, Music, Users, UserPlus, Heart } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { listRows, filterRows } from '@/lib/db';
 import { useAuth } from '@/lib/AuthContext';
 import TrackCard from '@/components/TrackCard';
 import StreamCard from '@/components/StreamCard';
@@ -29,31 +29,30 @@ function formatStat(n, cap = 500) {
 }
 
 export default function Home() {
-  const { navigateToLogin } = useAuth();
+  const { navigateToLogin, user } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: tracks = [], isLoading: tracksLoading } = useQuery({
     queryKey: ['featured-tracks'],
-    queryFn: () => base44.entities.Track.filter({ is_featured: true }, '-created_date', 6),
+    queryFn: () => filterRows('tracks', { is_featured: true }, '-created_date', 6),
     staleTime: 60000,
   });
 
   const { data: streams = [], isLoading: streamsLoading } = useQuery({
     queryKey: ['live-streams-home'],
-    queryFn: () => base44.entities.LiveStream.filter({ is_live: true }, '-viewer_count', 4),
+    queryFn: () => filterRows('live_streams', { is_live: true }, '-viewer_count', 4),
     staleTime: 30000,
     refetchInterval: 60000,
   });
 
   const { data: followingTracks = [], isLoading: followingLoading } = useQuery({
-    queryKey: ['following-feed'],
+    queryKey: ['following-feed', user?.email],
     queryFn: async () => {
-      const me = await base44.auth.me().catch(() => null);
-      if (!me) return [];
-      const follows = await base44.entities.Follow.filter({ follower_email: me.email });
+      if (!user) return [];
+      const follows = await filterRows('follows', { follower_email: user.email });
       if (!follows.length) return [];
       const artistNames = new Set(follows.map(f => f.artist_name));
-      const recentTracks = await base44.entities.Track.list('-created_date', 50);
+      const recentTracks = await listRows('tracks', '-created_date', 50);
       return recentTracks.filter(t => artistNames.has(t.artist)).slice(0, 6);
     },
     staleTime: 60000,
@@ -63,8 +62,8 @@ export default function Home() {
     queryKey: ['platform-stats'],
     queryFn: async () => {
       const [allTracks, allStreams] = await Promise.all([
-        base44.entities.Track.list('-created_date', 500),
-        base44.entities.LiveStream.list('-created_date', 500),
+        listRows('tracks', '-created_date', 500),
+        listRows('live_streams', '-created_date', 500),
       ]);
       const artists = new Set(allTracks.map(t => t.artist).filter(Boolean)).size;
       return {

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Kalunez</string>
+    <string name="title_activity_main">Kalunez</string>
+    <string name="package_name">com.kalunez.app</string>
+    <string name="custom_url_scheme">com.kalunez.app</string>
+</resources>

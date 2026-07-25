@@ -58,7 +58,7 @@ const sections = [
     title: '5. Subscriptions, tips, and payments',
     content: (
       <ul className="list-disc pl-5 space-y-1">
-        <li>Paid subscriptions and tips are processed by third-party payment providers (e.g., Stripe). Their terms also apply to payment transactions.</li>
+        <li>Paid subscriptions and tips are processed by third-party payment providers (e.g., RevenueCat, Stripe). Their terms also apply to payment transactions.</li>
         <li>Subscription fees, billing cycles, and cancellation terms are shown at checkout and on our <Link to="/pricing" className="text-purple-400 hover:underline">Pricing</Link> page.</li>
         <li>Unless required by law, fees are non-refundable once a billing period has started. You may cancel renewal at any time through your account settings.</li>
         <li>Artist payouts and Connect onboarding are subject to eligibility, verification, and the payment partner's policies.</li>

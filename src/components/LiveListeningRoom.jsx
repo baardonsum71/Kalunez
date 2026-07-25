@@ -1,22 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
 import { Send, Users, MessageSquare } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { filterRows, createRow, subscribeRows } from '@/lib/db';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function LiveListeningRoom({ streamId }) {
-  const [user, setUser] = useState(null);
+  const { user, navigateToLogin } = useAuth();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const bottomRef = useRef(null);
 
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
-
   const { data: allMessages = [] } = useQuery({
     queryKey: ['chat-messages', streamId],
-    queryFn: () => base44.entities.ChatMessage.filter({ stream_id: streamId }, 'created_date', 200),
+    queryFn: () => filterRows('chat_messages', { stream_id: streamId }, 'created_date', 200),
     refetchInterval: 5000,
     staleTime: 3000,
   });
@@ -31,21 +28,19 @@ export default function LiveListeningRoom({ streamId }) {
 
   useEffect(() => {
     if (!streamId) return;
-    const unsub = base44.entities.ChatMessage.subscribe((event) => {
-      if (event.data?.stream_id === streamId) {
-        if (event.type === 'create') {
-          setMessages(prev => [...prev, event.data]);
-        }
+    const unsub = subscribeRows('chat_messages', (payload) => {
+      if (payload.eventType === 'INSERT' && payload.new?.stream_id === streamId) {
+        setMessages(prev => [...prev, payload.new]);
       }
-    });
-    return () => unsub();
+    }, { column: 'stream_id', value: streamId });
+    return unsub;
   }, [streamId]);
 
   const send = async (e) => {
     e.preventDefault();
     if (!input.trim() || !user || sending) return;
     setSending(true);
-    await base44.entities.ChatMessage.create({
+    await createRow('chat_messages', {
       stream_id: streamId,
       sender_name: user.full_name || user.email.split('@')[0],
       message: input.trim(),
@@ -113,7 +108,7 @@ export default function LiveListeningRoom({ streamId }) {
         </form>
       ) : (
         <div className="border-t border-border px-4 py-3 bg-secondary/30 text-center text-muted-foreground text-xs">
-          <button onClick={() => base44.auth.redirectToLogin()} className="text-purple-400 hover:text-purple-300 font-semibold">
+          <button onClick={() => navigateToLogin()} className="text-purple-400 hover:text-purple-300 font-semibold">
             Sign in
           </button>
           {' '}to join the chat

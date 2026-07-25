@@ -38,11 +38,11 @@ const sections = [
     title: '3. Third-party cookies',
     content: (
       <ul className="list-disc pl-5 space-y-1">
-        <li><strong>Stripe</strong> — payment processing and fraud prevention when you subscribe or tip.</li>
+        <li><strong>RevenueCat</strong> — payment processing and subscription/tip management when you subscribe or tip.</li>
         <li><strong>PostHog</strong> — product analytics (with consent).</li>
         <li><strong>Sentry</strong> — error reporting and performance monitoring.</li>
         <li><strong>LiveKit / Mux</strong> — live streaming infrastructure when you watch or broadcast.</li>
-        <li><strong>Base44</strong> — authentication and backend services.</li>
+        <li><strong>Supabase</strong> — authentication and backend services.</li>
       </ul>
     ),
   },

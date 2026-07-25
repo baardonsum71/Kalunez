@@ -1,48 +1,45 @@
-import { useState, useEffect } from 'react';
-import { BarChart2, Music, DollarSign, Play, Edit2, Trash2, Save, X, Radio } from 'lucide-react';
+import { useState } from 'react';
+import { BarChart2, Music, DollarSign, Play, Edit2, Trash2, Save, X, Radio, CalendarPlus } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { filterRows, deleteRow, updateRow } from '@/lib/db';
+import { useAuth } from '@/lib/AuthContext';
 import ConnectOnboarding from '@/components/ConnectOnboarding';
 import ArtistAnalyticsChart from '@/components/ArtistAnalyticsChart';
-import { formatCents } from '@/lib/stripe';
+import { formatCents } from '@/lib/revenuecat';
 import { Link } from 'react-router-dom';
 
 export default function ArtistDashboard() {
-  const [user, setUser] = useState(null);
+  const { user, navigateToLogin } = useAuth();
   const [artistAccount, setArtistAccount] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const qc = useQueryClient();
 
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
-  }, []);
-
   const { data: tracks = [], isLoading } = useQuery({
     queryKey: ['my-tracks', user?.email],
-    queryFn: () => base44.entities.Track.filter({ created_by: user.email }, '-created_date', 50),
+    queryFn: () => filterRows('tracks', { created_by: user.email }, '-created_date', 50),
     enabled: !!user,
   });
 
   const { data: streams = [] } = useQuery({
     queryKey: ['my-streams', user?.email],
-    queryFn: () => base44.entities.LiveStream.filter({ created_by: user.email }, '-created_date', 50),
+    queryFn: () => filterRows('live_streams', { created_by: user.email }, '-created_date', 50),
     enabled: !!user,
   });
 
   const { data: tips = [] } = useQuery({
     queryKey: ['my-tips', user?.email],
-    queryFn: () => base44.entities.Tip.filter({ artist_email: user.email, status: 'completed' }, '-created_date', 20),
+    queryFn: () => filterRows('tips', { artist_email: user.email, status: 'completed' }, '-created_date', 20),
     enabled: !!user,
   });
 
   const { mutate: deleteTrack } = useMutation({
-    mutationFn: (id) => base44.entities.Track.delete(id),
+    mutationFn: (id) => deleteRow('tracks', id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['my-tracks'] }),
   });
 
   const { mutate: saveTrack } = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Track.update(id, data),
+    mutationFn: ({ id, data }) => updateRow('tracks', id, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['my-tracks'] });
       setEditingId(null);
@@ -63,7 +60,7 @@ export default function ArtistDashboard() {
     <div className="hero-gradient min-h-screen flex flex-col items-center justify-center gap-4">
       <BarChart2 className="w-12 h-12 text-purple-400 opacity-50" />
       <p className="text-white text-xl font-semibold">Sign in to view your dashboard</p>
-      <button type="button" onClick={() => base44.auth.redirectToLogin()} className="gradient-bg text-white px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity">
+      <button type="button" onClick={() => navigateToLogin()} className="gradient-bg text-white px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity">
         Sign In
       </button>
     </div>
@@ -81,6 +78,15 @@ export default function ArtistDashboard() {
             <Link to="/analytics" className="ml-3 text-purple-400 text-sm hover:underline">Platform Analytics →</Link>
           )}
         </p>
+
+        <div className="flex flex-wrap gap-3 mb-8">
+          <Link to="/go-live" className="inline-flex items-center gap-2 gradient-bg text-white text-sm font-bold px-4 py-2.5 rounded-xl hover:opacity-90">
+            <Radio className="w-4 h-4" /> Go Live
+          </Link>
+          <Link to="/create-event" className="inline-flex items-center gap-2 border border-border text-white text-sm font-bold px-4 py-2.5 rounded-xl hover:border-purple-500/50">
+            <CalendarPlus className="w-4 h-4" /> Create Event
+          </Link>
+        </div>
 
         <ConnectOnboarding user={user} onUpdate={setArtistAccount} />
 

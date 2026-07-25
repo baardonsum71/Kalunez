@@ -20,7 +20,7 @@ VITE_SENTRY_ENVIRONMENT=development
 VITE_SENTRY_ENABLED=true
 ```
 
-For production (Base44 publish / Vercel / Netlify):
+For production (Vercel / Netlify / Cloudflare Pages):
 
 ```
 VITE_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx
@@ -56,7 +56,7 @@ In Sentry → **Alerts**, create:
 
 1. **New issue** — email/Slack when a new error type appears
 2. **Spike in errors** — more than 10 events in 1 hour
-3. **Checkout failures** — filter `transaction:*checkout*` or message contains `Stripe`
+3. **Checkout failures** — filter `transaction:*checkout*` or message contains `RevenueCat`
 
 ---
 

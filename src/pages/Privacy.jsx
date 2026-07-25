@@ -48,7 +48,7 @@ const sections = [
         <p className="mb-2">We don't sell your personal data. We share it only with:</p>
         <ul className="list-disc pl-5 space-y-1">
           <li><strong>Service providers</strong> that help us run Kalunez (hosting, storage, analytics, email, content delivery, error monitoring, customer support).</li>
-          <li><strong>Payment partners</strong> (e.g., Stripe) to process transactions. They act as independent controllers or processors under their own terms.</li>
+          <li><strong>Payment partners</strong> (e.g., RevenueCat, Stripe) to process transactions and payouts. They act as independent controllers or processors under their own terms.</li>
           <li><strong>Creators</strong> when you interact with their content (e.g., likes, follows, subscriptions) — we may share aggregated or limited data to enable these features.</li>
           <li><strong>Legal or safety</strong> reasons (court orders, fraud prevention, protecting users and our rights).</li>
           <li><strong>Corporate events</strong> (merger, acquisition) where your data may transfer in accordance with this policy.</li>

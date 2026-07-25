@@ -1,4 +1,4 @@
-import { Share2, Copy, Check } from 'lucide-react';
+import { Share2, Check } from 'lucide-react';
 import { useState } from 'react';
 
 export default function ShareButton({ title, url, text }) {

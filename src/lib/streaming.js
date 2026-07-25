@@ -1,25 +1,21 @@
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/api/supabaseClient';
+
+async function invoke(name, body) {
+  const { data, error } = await supabase.functions.invoke(name, { body });
+  if (error) throw error;
+  return data;
+}
 
 export async function getLiveKitCredentials(roomName, role, streamId) {
-  const result = await base44.functions.invoke('getLiveKitToken', {
-    roomName,
-    role,
-    streamId,
-  });
-  return result;
+  return invoke('getLiveKitToken', { roomName, role, streamId });
 }
 
 export async function getLiveKitRoomInfo(roomName) {
-  const result = await base44.functions.invoke('getLiveKitRoomInfo', { roomName });
-  return result;
+  return invoke('getLiveKitRoomInfo', { roomName });
 }
 
 export async function createMuxStream(title, streamId) {
-  const result = await base44.functions.invoke('createMuxLiveStream', {
-    title,
-    streamId,
-  });
-  return result;
+  return invoke('createMuxLiveStream', { title, streamId });
 }
 
 export function generateRoomName() {

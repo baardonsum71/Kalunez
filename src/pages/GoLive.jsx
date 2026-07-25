@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Radio, Video, Mic, MicOff, VideoOff, StopCircle, Camera, Copy, Check, Monitor } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { createRow, updateRow, filterRows } from '@/lib/db';
+import { useAuth } from '@/lib/AuthContext';
 import LiveListeningRoom from '@/components/LiveListeningRoom';
 import TipButton from '@/components/TipButton';
 import MobileSelect from '@/components/MobileSelect';
@@ -17,6 +18,9 @@ const PROVIDERS = [
 ];
 
 export default function GoLive() {
+  const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const eventId = searchParams.get('eventId');
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const [mediaStream, setMediaStream] = useState(null);
@@ -32,9 +36,42 @@ export default function GoLive() {
   const [muxCredentials, setMuxCredentials] = useState(null);
   const [copied, setCopied] = useState(null);
   const [rightsConfirmed, setRightsConfirmed] = useState(false);
+  const [eventLoaded, setEventLoaded] = useState(!eventId);
 
   const isLiveKit = provider === 'livekit';
   const roomName = streamRecord?.room_name;
+
+  useEffect(() => {
+    if (!eventId || !user) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const rows = await filterRows('live_streams', { id: eventId }, '-created_date', 1);
+        const event = rows[0];
+        if (cancelled) return;
+        if (!event || event.created_by !== user.email) {
+          setError('Event not found or you are not the owner.');
+          setEventLoaded(true);
+          return;
+        }
+        setForm({
+          title: event.title || '',
+          artist: event.artist || '',
+          category: event.category || 'Music',
+          stream_type: event.stream_type || 'Video',
+        });
+        setStreamRecord(event);
+        setRightsConfirmed(true);
+        setEventLoaded(true);
+      } catch (err) {
+        if (!cancelled) {
+          setError(err.message || 'Could not load event');
+          setEventLoaded(true);
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [eventId, user]);
 
   const { connected: livekitConnected, connecting: livekitConnecting } = useLiveKitPublisher({
     roomName,
@@ -84,22 +121,41 @@ export default function GoLive() {
 
     try {
       const room = isLiveKit ? generateRoomName() : null;
+      let record;
 
-      const record = await base44.entities.LiveStream.create({
-        ...form,
-        provider,
-        room_name: room,
-        is_live: true,
-        viewer_count: 0,
-        reaction_count: 0,
-        rights_attested_at: new Date().toISOString(),
-      });
+      if (eventId && streamRecord?.id) {
+        record = await updateRow('live_streams', streamRecord.id, {
+          ...form,
+          provider,
+          room_name: room,
+          is_live: true,
+          status: 'live',
+          rights_attested_at: new Date().toISOString(),
+        });
+      } else {
+        record = await createRow('live_streams', {
+          ...form,
+          provider,
+          room_name: room,
+          is_live: true,
+          viewer_count: 0,
+          reaction_count: 0,
+          rights_attested_at: new Date().toISOString(),
+          created_by: user?.email,
+        });
+        // Best-effort: set status if migration 0002 is applied
+        try {
+          record = await updateRow('live_streams', record.id, { status: 'live' });
+        } catch {
+          // Column may not exist yet
+        }
+      }
 
       let finalRecord = { ...record, room_name: room };
 
       if (provider === 'mux') {
         const mux = await createMuxStream(form.title, record.id);
-        await base44.entities.LiveStream.update(record.id, {
+        await updateRow('live_streams', record.id, {
           mux_playback_id: mux.muxPlaybackId,
           mux_live_stream_id: mux.muxLiveStreamId,
           stream_url: mux.hlsUrl,
@@ -126,8 +182,9 @@ export default function GoLive() {
     }
     if (streamRecord) {
       const duration = streamStartRef.current ? Math.floor((Date.now() - streamStartRef.current) / 1000) : null;
-      await base44.entities.LiveStream.update(streamRecord.id, {
+      await updateRow('live_streams', streamRecord.id, {
         is_live: false,
+        status: 'ended',
         ended_at: new Date().toISOString(),
         ...(duration ? { duration_seconds: duration } : {}),
       });
@@ -166,13 +223,30 @@ export default function GoLive() {
     ? `${window.location.origin}/stream/${streamRecord.id}`
     : '';
 
+  if (!eventLoaded) {
+    return (
+      <div className="hero-gradient min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-purple-900 border-t-purple-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="hero-gradient min-h-screen px-4 pt-10 pb-24 safe-top safe-bottom">
       <div className="max-w-2xl mx-auto safe-left safe-right">
         <h1 className="text-3xl font-bold text-white flex items-center gap-3 mb-2">
-          <Radio className="w-7 h-7 text-pink-400 animate-pulse" /> Go Live
+          <Radio className="w-7 h-7 text-pink-400 animate-pulse" /> {eventId ? 'Start Event Stream' : 'Go Live'}
         </h1>
-        <p className="text-muted-foreground mb-8">Start your live stream to the world</p>
+        <p className="text-muted-foreground mb-8">
+          {eventId ? (
+            'Start broadcasting for your scheduled concert. Ticket holders can join when you go live.'
+          ) : (
+            <>
+              Start your live stream free for everyone — or{' '}
+              <Link to="/create-event" className="text-purple-400 hover:underline">schedule a ticketed event</Link>.
+            </>
+          )}
+        </p>
 
         {step === 'setup' && (
           <div className="bg-gradient-to-br from-cyan-900/20 to-teal-900/10 border border-cyan-500/20 rounded-2xl p-6 space-y-5">
@@ -205,7 +279,8 @@ export default function GoLive() {
                 value={form.title}
                 onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                 placeholder="e.g. Friday Night Jazz Session"
-                className="w-full bg-secondary border border-border text-foreground text-sm px-3 py-2.5 rounded-lg focus:outline-none focus:border-purple-500"
+                disabled={!!eventId}
+                className="w-full bg-secondary border border-border text-foreground text-sm px-3 py-2.5 rounded-lg focus:outline-none focus:border-purple-500 disabled:opacity-70"
               />
             </div>
             <div>
@@ -214,7 +289,8 @@ export default function GoLive() {
                 value={form.artist}
                 onChange={e => setForm(f => ({ ...f, artist: e.target.value }))}
                 placeholder="Your name or band"
-                className="w-full bg-secondary border border-border text-foreground text-sm px-3 py-2.5 rounded-lg focus:outline-none focus:border-purple-500"
+                disabled={!!eventId}
+                className="w-full bg-secondary border border-border text-foreground text-sm px-3 py-2.5 rounded-lg focus:outline-none focus:border-purple-500 disabled:opacity-70"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -387,7 +463,7 @@ export default function GoLive() {
             <p className="text-muted-foreground mb-6">Thanks for streaming on Kalunez!</p>
             <button
               type="button"
-              onClick={() => { setStep('setup'); setStreamRecord(null); setMuxCredentials(null); setError(''); setRightsConfirmed(false); }}
+              onClick={() => { setStep('setup'); if (!eventId) setStreamRecord(null); setMuxCredentials(null); setError(''); setRightsConfirmed(!!eventId); }}
               className="gradient-bg text-white px-8 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity"
             >
               Start New Stream

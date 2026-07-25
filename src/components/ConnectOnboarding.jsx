@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Wallet, ExternalLink, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
-import { startConnectOnboarding, getArtistAccount } from '@/lib/stripe';
+import { startConnectOnboarding, getArtistAccount } from '@/lib/revenuecat';
 import { toast } from '@/components/ui/use-toast';
 
 export default function ConnectOnboarding({ user, onUpdate }) {
@@ -14,7 +13,7 @@ export default function ConnectOnboarding({ user, onUpdate }) {
     loadAccount();
     const params = new URLSearchParams(window.location.search);
     if (params.get('connect') === 'success') {
-      toast({ title: 'Stripe connected!', description: 'Your payout account is being verified.' });
+      toast({ title: 'Payout account connected!', description: 'Your payout account is being verified.' });
       window.history.replaceState({}, '', '/artist-dashboard');
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -75,7 +74,7 @@ export default function ConnectOnboarding({ user, onUpdate }) {
         <div>
           <h2 className="text-white font-bold text-lg">Receive Tips & Payouts</h2>
           <p className="text-muted-foreground text-sm mt-1">
-            Connect Stripe to receive tips from fans. Kalunez takes a 10% platform fee; the rest goes directly to you.
+            Set up a payout account to receive tips from fans. Kalunez takes a 10% platform fee; the rest is paid out to you.
           </p>
         </div>
       </div>
@@ -84,14 +83,14 @@ export default function ConnectOnboarding({ user, onUpdate }) {
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-green-400 text-sm">
             <CheckCircle2 className="w-4 h-4" />
-            Stripe Connect active — you can receive tips as <span className="font-semibold text-white">{account.artist_name}</span>
+            Payouts active — you can receive tips as <span className="font-semibold text-white">{account.artist_name}</span>
           </div>
           <button
             type="button"
             onClick={openDashboard}
             className="flex items-center gap-2 text-sm text-purple-400 hover:text-purple-300 transition-colors"
           >
-            <ExternalLink className="w-4 h-4" /> Open Stripe Express Dashboard
+            <ExternalLink className="w-4 h-4" /> Open Payout Dashboard
           </button>
         </div>
       ) : account?.stripe_connect_account_id ? (
@@ -125,7 +124,7 @@ export default function ConnectOnboarding({ user, onUpdate }) {
             className="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-3 rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {connecting && <Loader2 className="w-4 h-4 animate-spin" />}
-            Connect Stripe Account
+            Set Up Payout Account
           </button>
         </div>
       )}
