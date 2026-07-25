@@ -58,32 +58,32 @@ export default function Settings() {
           <h2 className="text-white font-semibold mb-4">Account</h2>
           <div className="space-y-3">
             <div className="flex items-center justify-between py-2 border-b border-border">
-              <span className="text-foreground text-sm">Notifications</span>
+              <span className="text-white text-sm">Notifications</span>
               <span className="text-muted-foreground text-sm">Coming soon</span>
             </div>
 
             <div className="flex items-center justify-between py-2 border-b border-border">
-              <span className="text-foreground text-sm">Language</span>
+              <span className="text-white text-sm">Language</span>
               <span className="text-muted-foreground text-sm">English</span>
             </div>
             <Link to="/subscription" className="flex items-center justify-between py-2 border-b border-border hover:opacity-80 transition-opacity">
-              <span className="flex items-center gap-2 text-foreground text-sm"><Star className="w-4 h-4 text-yellow-400" /> Subscription & Billing</span>
+              <span className="flex items-center gap-2 text-white text-sm"><Star className="w-4 h-4 text-yellow-400" /> Subscription & Billing</span>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </Link>
             <Link to="/privacy" className="flex items-center justify-between py-2 border-b border-border hover:opacity-80 transition-opacity">
-              <span className="flex items-center gap-2 text-foreground text-sm"><Shield className="w-4 h-4 text-cyan-400" /> Privacy Policy</span>
+              <span className="flex items-center gap-2 text-white text-sm"><Shield className="w-4 h-4 text-cyan-400" /> Privacy Policy</span>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </Link>
             <Link to="/terms" className="flex items-center justify-between py-2 border-b border-border hover:opacity-80 transition-opacity">
-              <span className="flex items-center gap-2 text-foreground text-sm"><FileText className="w-4 h-4 text-purple-400" /> Terms of Service</span>
+              <span className="flex items-center gap-2 text-white text-sm"><FileText className="w-4 h-4 text-purple-400" /> Terms of Service</span>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </Link>
             <Link to="/dmca" className="flex items-center justify-between py-2 border-b border-border hover:opacity-80 transition-opacity">
-              <span className="flex items-center gap-2 text-foreground text-sm"><Scale className="w-4 h-4 text-teal-400" /> DMCA Policy</span>
+              <span className="flex items-center gap-2 text-white text-sm"><Scale className="w-4 h-4 text-teal-400" /> DMCA Policy</span>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </Link>
             <Link to="/cookies" className="flex items-center justify-between py-2 border-b border-border hover:opacity-80 transition-opacity">
-              <span className="flex items-center gap-2 text-foreground text-sm"><Cookie className="w-4 h-4 text-amber-400" /> Cookie Policy</span>
+              <span className="flex items-center gap-2 text-white text-sm"><Cookie className="w-4 h-4 text-amber-400" /> Cookie Policy</span>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </Link>
             <CookieConsentSettings />
@@ -91,7 +91,7 @@ export default function Settings() {
               onClick={() => { setChangingPassword(!changingPassword); setPwError(''); setPwSuccess(false); }}
               className="flex items-center justify-between py-2 w-full hover:opacity-80 transition-opacity"
             >
-              <span className="flex items-center gap-2 text-foreground text-sm"><KeyRound className="w-4 h-4 text-purple-400" /> Change Password</span>
+              <span className="flex items-center gap-2 text-white text-sm"><KeyRound className="w-4 h-4 text-purple-400" /> Change Password</span>
               <ChevronRight className={`w-4 h-4 text-muted-foreground transition-transform ${changingPassword ? 'rotate-90' : ''}`} />
             </button>
             {changingPassword && (
@@ -103,7 +103,7 @@ export default function Settings() {
                       placeholder={i === 0 ? 'Current password' : i === 1 ? 'New password' : 'Confirm new password'}
                       value={pwForm[field]}
                       onChange={e => setPwForm(p => ({ ...p, [field]: e.target.value }))}
-                      className="w-full bg-card border border-border text-foreground text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-purple-500 pr-10"
+                      className="w-full bg-card border border-border text-white text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-purple-500 pr-10"
                       required
                     />
                     {i === 2 && (
@@ -120,7 +120,7 @@ export default function Settings() {
                     {pwLoading && <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
                     Save
                   </button>
-                  <button type="button" onClick={() => setChangingPassword(false)} className="border border-border text-foreground text-sm px-4 py-2 rounded-lg font-semibold hover:bg-secondary transition-colors">Cancel</button>
+                  <button type="button" onClick={() => setChangingPassword(false)} className="border border-border text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-secondary transition-colors">Cancel</button>
                 </div>
               </form>
             )}
@@ -157,7 +157,7 @@ export default function Settings() {
                 </button>
                 <button
                   onClick={() => setConfirming(false)}
-                  className="select-none border border-border text-foreground px-5 py-2 rounded-lg text-sm font-semibold hover:bg-secondary transition-colors"
+                  className="select-none border border-border text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-secondary transition-colors"
                 >
                   Cancel
                 </button>

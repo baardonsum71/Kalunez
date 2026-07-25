@@ -93,7 +93,7 @@ export function CookieConsentSettings() {
   return (
     <div className="py-2 border-b border-border">
       <div className="flex items-center justify-between gap-3 mb-2">
-        <span className="flex items-center gap-2 text-foreground text-sm">
+        <span className="flex items-center gap-2 text-white text-sm">
           <Cookie className="w-4 h-4 text-amber-400" /> Cookie preferences
         </span>
         <Link to="/cookies" className="text-xs text-purple-400 hover:underline">Learn more</Link>
