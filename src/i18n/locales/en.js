@@ -45,6 +45,7 @@ export default {
     dmca: 'DMCA Policy',
     cookies: 'Cookie Policy',
     changePassword: 'Change Password',
+    signOut: 'Sign Out',
     currentPassword: 'Current password',
     newPassword: 'New password',
     confirmPassword: 'Confirm new password',

@@ -45,6 +45,7 @@ export default {
     dmca: 'DMCA-policy',
     cookies: 'Cookie-policy',
     changePassword: 'Bytt passord',
+    signOut: 'Logg ut',
     currentPassword: 'Nåværende passord',
     newPassword: 'Nytt passord',
     confirmPassword: 'Bekreft nytt passord',

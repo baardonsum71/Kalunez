@@ -1,6 +1,6 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Music, Radio, Zap, Mic2, Upload, Menu, X, ChevronLeft, Home, Settings, Tv2, BarChart2, MessageSquare, Bell } from 'lucide-react';
+import { Music, Radio, Zap, Mic2, Upload, Menu, X, ChevronLeft, Home, Settings, Tv2, BarChart2, MessageSquare, Bell, LogOut } from 'lucide-react';
 import FloatingPlayer from '@/components/FloatingPlayer';
 import Footer from '@/components/Footer';
 import { useState, useEffect, useRef, useMemo } from 'react';
@@ -16,7 +16,7 @@ export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const scrollPositions = useRef({});
 
   const navLinks = useMemo(() => [
@@ -143,6 +143,27 @@ export default function Layout() {
                 {label}
               </Link>
             ))}
+            {isAuthenticated ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  logout();
+                }}
+                className="select-none flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-white hover:bg-white/5"
+              >
+                <LogOut className="w-4 h-4" />
+                {t('settings.signOut')}
+              </button>
+            ) : (
+              <Link
+                to="/login"
+                onClick={() => setMenuOpen(false)}
+                className="select-none flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-[var(--lime)] hover:bg-white/5"
+              >
+                {t('common.signIn')}
+              </Link>
+            )}
           </div>
         )}
       </nav>

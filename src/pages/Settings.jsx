@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Settings as SettingsIcon, Trash2, AlertTriangle, Shield, ChevronRight, KeyRound, Eye, EyeOff, Star, Scale, Cookie, FileText, User, Camera } from 'lucide-react';
+import { Settings as SettingsIcon, Trash2, AlertTriangle, Shield, ChevronRight, KeyRound, Eye, EyeOff, Star, Scale, Cookie, FileText, User, Camera, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/api/supabaseClient';
@@ -310,6 +310,17 @@ export default function Settings() {
                 </div>
               </form>
             )}
+
+            <button
+              type="button"
+              onClick={() => logout()}
+              className="flex items-center justify-between py-2 w-full border-t border-border mt-1 pt-3 hover:opacity-80 transition-opacity"
+            >
+              <span className="flex items-center gap-2 text-white text-sm">
+                <LogOut className="w-4 h-4 text-[var(--lime)]" /> {t('settings.signOut')}
+              </span>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </button>
           </div>
         </div>
 
