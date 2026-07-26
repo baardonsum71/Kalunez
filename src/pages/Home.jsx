@@ -129,14 +129,8 @@ export default function Home() {
         </section>
 
         <section className="max-w-6xl mx-auto px-4 py-16 md:py-20">
-          <div className="relative overflow-hidden rounded-2xl border border-white/10">
-            <img
-              src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1400&h=700&fit=crop&q=80"
-              alt="DJ booth atmosphere"
-              loading="lazy"
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/30" />
+          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[rgba(255,45,149,0.18)] via-[#0a0a0f] to-[rgba(200,245,66,0.1)]">
+            <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-transparent" aria-hidden />
             <div className="relative p-8 md:p-12 max-w-xl">
               <span className="font-display text-sm tracking-[0.2em] text-[var(--lime)] mb-3 block">FOR ARTISTS</span>
               <h2 className="font-display text-4xl md:text-5xl text-white mb-3 leading-none">PLAY THE ROOM. GET PAID.</h2>
