@@ -41,6 +41,17 @@ export default function GoLive() {
   const isLiveKit = provider === 'livekit';
   const roomName = streamRecord?.room_name;
 
+  // Attach camera after the <video> mounts. Setting srcObject in startCamera
+  // runs before step flips to preview/live, so videoRef is still null → black screen.
+  useEffect(() => {
+    if ((step !== 'preview' && step !== 'live') || !mediaStream || !videoRef.current) return;
+    const video = videoRef.current;
+    if (video.srcObject !== mediaStream) {
+      video.srcObject = mediaStream;
+    }
+    video.play().catch(() => {});
+  }, [step, mediaStream]);
+
   useEffect(() => {
     if (!eventId || !user) return;
     let cancelled = false;
@@ -94,12 +105,12 @@ export default function GoLive() {
     setLoading(true);
     try {
       const video = form.stream_type !== 'Audio Only';
-      const media = await navigator.mediaDevices.getUserMedia({ video, audio: true });
+      const media = await navigator.mediaDevices.getUserMedia({
+        video: video ? { facingMode: 'user' } : false,
+        audio: true,
+      });
       streamRef.current = media;
       setMediaStream(media);
-      if (videoRef.current) {
-        videoRef.current.srcObject = media;
-      }
       setStep('preview');
     } catch {
       setError('Could not access camera/microphone. Please allow permissions and try again.');
