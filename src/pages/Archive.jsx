@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Archive, Clock, Music, Calendar } from 'lucide-react';
+import { Archive, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { filterRows } from '@/lib/db';

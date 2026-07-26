@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Music, Radio, Heart, ChevronLeft, Users } from 'lucide-react';
+import { Music, Radio, ChevronLeft } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { filterRows } from '@/lib/db';
 import TrackCard from '@/components/TrackCard';

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Send, ChevronLeft, MessageSquare } from 'lucide-react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { filterRows, createRow, updateRow, subscribeRows } from '@/lib/db';
 import { useAuth } from '@/lib/AuthContext';
 

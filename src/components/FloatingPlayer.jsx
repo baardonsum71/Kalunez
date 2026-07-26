@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause, X, Music, Volume2 } from 'lucide-react';
+import { Play, Pause, X, Music } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { subscribePlayer, getPlayerState, setPlayerState, togglePlay } from '@/lib/playerStore';
 

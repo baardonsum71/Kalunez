@@ -1,4 +1,4 @@
-import { memo, useState } from 'react';
+import { memo } from 'react';
 import { UserPlus, UserCheck } from 'lucide-react';
 import { filterRows, createRow, deleteRow } from '@/lib/db';
 import { useAuth } from '@/lib/AuthContext';
