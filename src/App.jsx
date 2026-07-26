@@ -42,6 +42,7 @@ const ArtistProfile = lazy(() => import('@/pages/ArtistProfile'));
 const Analytics = lazy(() => import('@/pages/Analytics'));
 const CreateEvent = lazy(() => import('@/pages/CreateEvent'));
 const Login = lazy(() => import('@/pages/Login'));
+const TipDemo = lazy(() => import('@/pages/TipDemo'));
 
 const LoginPrompt = () => {
   const { navigateToLogin } = useAuth();
@@ -89,6 +90,7 @@ const AuthenticatedApp = () => {
           <Route path="/dmca" element={<Dmca />} />
           <Route path="/cookies" element={<Cookies />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/tip-demo" element={<TipDemo />} />
           <Route path="/archive" element={<ArchivePage />} />
           <Route path="/track/:id" element={<TrackDetail />} />
           <Route path="/vod/:id" element={<VodDetail />} />
