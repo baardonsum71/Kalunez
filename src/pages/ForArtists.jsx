@@ -14,14 +14,18 @@ export default function ForArtists() {
   return (
     <div className="hero-gradient min-h-screen">
       <section className="relative min-h-[85svh] flex items-end md:items-center overflow-hidden club-grain">
-        <div className="absolute inset-0">
-          <img
-            src="https://images.unsplash.com/photo-1514525253161-7a06099daa1d?w=1600&h=1200&fit=crop&q=80"
-            alt=""
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050507] via-[#050507]/80 to-[#050507]/45" />
-        </div>
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `
+              radial-gradient(ellipse 80% 55% at 70% 35%, rgba(200, 245, 66, 0.2), transparent 55%),
+              radial-gradient(ellipse 60% 50% at 20% 80%, rgba(255, 45, 149, 0.22), transparent 50%),
+              linear-gradient(160deg, #050507 0%, #12081a 50%, #050507 100%)
+            `,
+          }}
+          aria-hidden
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#050507] via-transparent to-[#050507]/40" aria-hidden />
         <div className="hero-sweep" aria-hidden />
 
         <div className="relative z-[2] w-full max-w-6xl mx-auto px-4 pt-[calc(6rem+var(--safe-top))] pb-16 md:pb-24">

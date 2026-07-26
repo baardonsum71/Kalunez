@@ -84,15 +84,20 @@ export default function Home() {
       <div className="hero-gradient min-h-screen">
         {/* Hero — one composition: brand, headline, line, CTA, full-bleed visual */}
         <section className="relative min-h-[100svh] flex items-end md:items-center overflow-hidden club-grain">
-          <div className="absolute inset-0">
-            <img
-              src="https://images.unsplash.com/photo-1571266028243-d220c6a0b4c4?w=1600&h=1200&fit=crop&q=80"
-              alt=""
-              className="w-full h-full object-cover scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#050507] via-[#050507]/75 to-[#050507]/40" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#050507]/90 via-[#050507]/35 to-transparent" />
-          </div>
+          {/* CSS-only stage (no external Unsplash — Safari showed broken-image "?" when blocked). */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `
+                radial-gradient(ellipse 90% 60% at 75% 40%, rgba(255, 45, 149, 0.28), transparent 55%),
+                radial-gradient(ellipse 70% 50% at 15% 70%, rgba(200, 245, 66, 0.14), transparent 50%),
+                radial-gradient(ellipse 50% 40% at 60% 10%, rgba(120, 80, 255, 0.12), transparent 45%),
+                linear-gradient(165deg, #050507 0%, #0c0612 45%, #050507 100%)
+              `,
+            }}
+            aria-hidden
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050507] via-transparent to-[#050507]/50" aria-hidden />
           <div className="hero-sweep" aria-hidden />
 
           <div className="relative z-[2] w-full max-w-6xl mx-auto px-4 pt-[calc(6rem+var(--safe-top))] pb-16 md:pb-24">
