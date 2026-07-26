@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { Settings as SettingsIcon, Trash2, AlertTriangle, Shield, ChevronRight, KeyRound, Eye, EyeOff, Star, Scale, Cookie, FileText } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Settings as SettingsIcon, Trash2, AlertTriangle, Shield, ChevronRight, KeyRound, Eye, EyeOff, Star, Scale, Cookie, FileText, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/lib/AuthContext';
 import { CookieConsentSettings } from '@/components/CookieConsent';
 
 export default function Settings() {
-  const { logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
@@ -15,6 +15,49 @@ export default function Settings() {
   const [pwError, setPwError] = useState('');
   const [pwSuccess, setPwSuccess] = useState(false);
   const [pwLoading, setPwLoading] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    full_name: '',
+    account_type: 'listener',
+    artist_name: '',
+    bio: '',
+  });
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileMsg, setProfileMsg] = useState('');
+  const [profileErr, setProfileErr] = useState('');
+
+  useEffect(() => {
+    if (!user) return;
+    setProfileForm({
+      full_name: user.full_name || '',
+      account_type: user.account_type || 'listener',
+      artist_name: user.artist_name || '',
+      bio: user.bio || '',
+    });
+  }, [user]);
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    if (!user?.id) return;
+    setProfileErr('');
+    setProfileMsg('');
+    setProfileSaving(true);
+    const accountType = profileForm.account_type === 'artist' ? 'artist' : 'listener';
+    const { error } = await supabase.from('profiles').upsert({
+      id: user.id,
+      email: user.email,
+      full_name: profileForm.full_name.trim(),
+      account_type: accountType,
+      artist_name: accountType === 'artist' ? profileForm.artist_name.trim() || profileForm.full_name.trim() : null,
+      bio: profileForm.bio.trim() || null,
+    });
+    setProfileSaving(false);
+    if (error) {
+      setProfileErr(error.message);
+      return;
+    }
+    await refreshUser?.();
+    setProfileMsg('Profile saved.');
+  };
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
@@ -53,6 +96,74 @@ export default function Settings() {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 pb-[calc(8rem+var(--safe-bottom))] space-y-6">
+        {/* Profile */}
+        <div className="bg-gradient-to-br from-cyan-900/20 to-teal-900/10 border border-cyan-500/20 rounded-2xl p-6">
+          <h2 className="text-white font-semibold mb-1 flex items-center gap-2">
+            <User className="w-5 h-5 text-cyan-400" /> Your profile
+          </h2>
+          <p className="text-muted-foreground text-sm mb-4">
+            Everyone gets a profile. Choose Listener (stream & tip) or Artist (also upload & go live).
+          </p>
+          <form onSubmit={handleSaveProfile} className="space-y-3">
+            <div>
+              <label className="text-white text-xs mb-1 block">Display name</label>
+              <input
+                value={profileForm.full_name}
+                onChange={(e) => setProfileForm((p) => ({ ...p, full_name: e.target.value }))}
+                className="w-full bg-secondary/50 border border-border text-white text-sm px-3 py-2.5 rounded-lg focus:outline-none focus:border-purple-500"
+                placeholder="Your name"
+                required
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {['listener', 'artist'].map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => setProfileForm((p) => ({ ...p, account_type: type }))}
+                  className={`py-2.5 rounded-xl text-sm font-semibold border capitalize transition-colors ${
+                    profileForm.account_type === type
+                      ? 'border-purple-500 bg-purple-500/20 text-white'
+                      : 'border-border text-muted-foreground hover:text-white'
+                  }`}
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
+            {profileForm.account_type === 'artist' && (
+              <div>
+                <label className="text-white text-xs mb-1 block">Artist / stage name</label>
+                <input
+                  value={profileForm.artist_name}
+                  onChange={(e) => setProfileForm((p) => ({ ...p, artist_name: e.target.value }))}
+                  className="w-full bg-secondary/50 border border-border text-white text-sm px-3 py-2.5 rounded-lg focus:outline-none focus:border-purple-500"
+                  placeholder="Public artist name"
+                />
+              </div>
+            )}
+            <div>
+              <label className="text-white text-xs mb-1 block">Bio (optional)</label>
+              <textarea
+                value={profileForm.bio}
+                onChange={(e) => setProfileForm((p) => ({ ...p, bio: e.target.value }))}
+                rows={3}
+                className="w-full bg-secondary/50 border border-border text-white text-sm px-3 py-2.5 rounded-lg focus:outline-none focus:border-purple-500 resize-none"
+                placeholder="A short intro"
+              />
+            </div>
+            {profileErr && <p className="text-destructive text-xs">{profileErr}</p>}
+            {profileMsg && <p className="text-green-400 text-xs">{profileMsg}</p>}
+            <button
+              type="submit"
+              disabled={profileSaving}
+              className="gradient-bg text-white text-sm font-semibold px-4 py-2.5 rounded-xl disabled:opacity-50"
+            >
+              {profileSaving ? 'Saving…' : 'Save profile'}
+            </button>
+          </form>
+        </div>
+
         {/* Account Section */}
         <div className="bg-gradient-to-br from-cyan-900/20 to-teal-900/10 border border-cyan-500/20 rounded-2xl p-6">
           <h2 className="text-white font-semibold mb-4">Account</h2>

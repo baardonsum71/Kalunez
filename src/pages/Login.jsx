@@ -20,6 +20,7 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [accountType, setAccountType] = useState('listener'); // 'listener' | 'artist'
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -34,7 +35,7 @@ export default function Login() {
         await signInWithPassword(email, password);
         navigate(redirect, { replace: true });
       } else if (mode === 'signup') {
-        await signUpWithPassword(email, password, fullName);
+        await signUpWithPassword(email, password, fullName, accountType);
         setMessage('Account created. Check your email to confirm, then sign in.');
         setMode('signin');
       } else if (mode === 'reset') {
@@ -87,13 +88,42 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-3">
             {mode === 'signup' && (
-              <input
-                type="text"
-                placeholder="Full name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="w-full bg-secondary/50 border border-border text-foreground text-sm px-3 py-2.5 rounded-lg focus:outline-none focus:border-purple-500"
-              />
+              <>
+                <input
+                  type="text"
+                  placeholder="Display name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full bg-secondary/50 border border-border text-white text-sm px-3 py-2.5 rounded-lg focus:outline-none focus:border-purple-500"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAccountType('listener')}
+                    className={`py-2.5 rounded-xl text-sm font-semibold border transition-colors ${
+                      accountType === 'listener'
+                        ? 'border-purple-500 bg-purple-500/20 text-white'
+                        : 'border-border text-muted-foreground hover:text-white'
+                    }`}
+                  >
+                    Listener
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAccountType('artist')}
+                    className={`py-2.5 rounded-xl text-sm font-semibold border transition-colors ${
+                      accountType === 'artist'
+                        ? 'border-purple-500 bg-purple-500/20 text-white'
+                        : 'border-border text-muted-foreground hover:text-white'
+                    }`}
+                  >
+                    Artist
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Listeners stream and tip. Artists can also upload, go live, and earn. You can change this later in Settings.
+                </p>
+              </>
             )}
             <input
               type="email"

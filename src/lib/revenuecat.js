@@ -159,8 +159,14 @@ async function purchasePackage(purchases, rcPackage) {
   }
 }
 
+/** Always return plan cards for the Pricing page (display prices are local).
+ *  Checkout still requires a platform RevenueCat public key at purchase time. */
 export function getConfiguredPlans() {
-  return getPublicKey() ? SUBSCRIPTION_PLANS : [];
+  return SUBSCRIPTION_PLANS;
+}
+
+export function isBillingConfigured() {
+  return Boolean(getPublicKey());
 }
 
 export function getPlanById(planId) {

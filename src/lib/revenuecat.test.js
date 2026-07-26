@@ -19,9 +19,9 @@ describe('revenuecat config', () => {
     expect(SUBSCRIPTION_PLANS).toHaveLength(5);
   });
 
-  it('getConfiguredPlans returns empty list without a public key', () => {
+  it('getConfiguredPlans always returns display plans', () => {
     const configured = getConfiguredPlans();
-    expect(Array.isArray(configured)).toBe(true);
+    expect(configured).toHaveLength(SUBSCRIPTION_PLANS.length);
   });
 
   it('getPlanById returns matching plan', () => {

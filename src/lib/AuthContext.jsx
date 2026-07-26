@@ -4,9 +4,42 @@ import { supabase } from '@/api/supabaseClient';
 const AuthContext = createContext();
 
 async function fetchProfile(userId) {
-  const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+  const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+  if (error) return null;
+  return data;
+}
+
+/** Creates a listener profile if the DB trigger missed it (common on first signup). */
+async function ensureProfile(authUser) {
+  if (!authUser?.id) return null;
+
+  let profile = await fetchProfile(authUser.id);
+  if (profile) return profile;
+
+  const fullName =
+    authUser.user_metadata?.full_name ||
+    authUser.user_metadata?.name ||
+    authUser.email?.split('@')[0] ||
+    '';
+  const accountType = authUser.user_metadata?.account_type === 'artist' ? 'artist' : 'listener';
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .upsert(
+      {
+        id: authUser.id,
+        email: authUser.email,
+        full_name: fullName,
+        account_type: accountType,
+      },
+      { onConflict: 'id' }
+    )
+    .select('*')
+    .maybeSingle();
+
   if (error) {
-    // Profile row may not exist yet (trigger race on first sign-up) — not fatal.
+    // eslint-disable-next-line no-console
+    console.error('ensureProfile failed:', error.message);
     return null;
   }
   return data;
@@ -22,6 +55,8 @@ function mergeUser(authUser, profile) {
     role: profile?.role || 'user',
     profile_picture_url: profile?.profile_picture_url || null,
     artist_name: profile?.artist_name || null,
+    account_type: profile?.account_type || 'listener',
+    bio: profile?.bio || null,
   };
 }
 
@@ -37,7 +72,7 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(false);
       return;
     }
-    const profile = await fetchProfile(authUser.id);
+    const profile = await ensureProfile(authUser);
     setUser(mergeUser(authUser, profile));
     setIsAuthenticated(true);
   }, []);
@@ -72,13 +107,21 @@ export const AuthProvider = ({ children }) => {
     if (error) throw error;
   };
 
-  const signUpWithPassword = async (email, password, fullName) => {
-    const { error } = await supabase.auth.signUp({
+  const signUpWithPassword = async (email, password, fullName, accountType = 'listener') => {
+    const type = accountType === 'artist' ? 'artist' : 'listener';
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName || '' } },
+      options: {
+        data: {
+          full_name: fullName || '',
+          account_type: type,
+        },
+      },
     });
     if (error) throw error;
+    // If email confirm is off, session exists immediately — ensure profile now.
+    if (data?.user) await ensureProfile({ ...data.user, email: data.user.email || email });
   };
 
   const signInWithApple = async (redirectTo) => {

@@ -1,16 +1,21 @@
 import { useState } from 'react';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
-import { getConfiguredPlans, purchasePlan } from '@/lib/revenuecat';
+import { getConfiguredPlans, isBillingConfigured, purchasePlan } from '@/lib/revenuecat';
 
 export default function Pricing() {
   const { user, navigateToLogin } = useAuth();
   const [loadingId, setLoadingId] = useState(null);
   const [error, setError] = useState('');
   const plans = getConfiguredPlans();
+  const billingReady = isBillingConfigured();
 
   const handleSubscribe = async (plan) => {
     setError('');
+    if (!billingReady) {
+      setError('Checkout is not configured yet for this platform. Prices are shown; payments need RevenueCat setup.');
+      return;
+    }
     if (!user) {
       navigateToLogin();
       return;
@@ -26,25 +31,17 @@ export default function Pricing() {
     }
   };
 
-  if (plans.length === 0) {
-    return (
-      <div className="hero-gradient min-h-screen flex items-center justify-center px-4">
-        <div className="text-center max-w-md">
-          <h1 className="text-2xl font-bold text-white mb-2">Pricing Not Configured</h1>
-          <p className="text-muted-foreground text-sm">
-            Add your RevenueCat public key to <code className="text-purple-400">.env.local</code> — see docs/REVENUECAT_SETUP.md
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="hero-gradient min-h-screen">
       <div className="bg-gradient-to-b from-purple-900/30 to-transparent px-4 pt-10 pb-8 text-center">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-4xl font-extrabold text-white mb-3">Choose Your Plan</h1>
           <p className="text-muted-foreground text-lg">Unlock the full Kalunez experience</p>
+          {!billingReady && (
+            <p className="text-amber-300/90 text-sm mt-3">
+              Prices below are listed. Live checkout needs a RevenueCat key for this platform.
+            </p>
+          )}
         </div>
       </div>
 
