@@ -126,8 +126,14 @@ const IS_NATIVE = Capacitor.isNativePlatform();
 
 let purchasesRef = null;
 
+// Public Web Billing SDK key — safe in the client. Used as fallback when
+// Vercel env is missing/misnamed (dashboard env has failed to inject repeatedly).
+const WEB_BILLING_PUBLIC_KEY_FALLBACK = 'rcb_TdRZaSXDttTeYETrokkCKpvLqdYQ';
+
 function getPublicKey() {
-  if (!IS_NATIVE) return import.meta.env.VITE_REVENUECAT_PUBLIC_KEY;
+  if (!IS_NATIVE) {
+    return import.meta.env.VITE_REVENUECAT_PUBLIC_KEY || WEB_BILLING_PUBLIC_KEY_FALLBACK;
+  }
   // Capacitor shares one native plugin; store keys differ per platform.
   if (Capacitor.getPlatform() === 'android') {
     return import.meta.env.VITE_REVENUECAT_ANDROID_PUBLIC_KEY;
