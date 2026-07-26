@@ -8,7 +8,9 @@ import { getServiceClient, jsonResponse } from '../_shared/client.ts';
 // Keep in sync with src/lib/revenuecat.js SUBSCRIPTION_PLANS.
 const PRODUCT_TIER_MAP: Record<string, string> = {
   pro_monthly: 'pro',
+  pro_monthly_subscription: 'pro',
   premium_monthly: 'premium',
+  premium_monthly_subscription: 'premium',
   premium_podcast_monthly: 'premium_podcast',
   premium_yearly: 'premium',
   premium_podcast_yearly: 'premium_podcast',

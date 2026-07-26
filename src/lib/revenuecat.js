@@ -5,7 +5,9 @@ import { supabase } from '@/api/supabaseClient';
 // (Project > Products / Offerings). See docs/REVENUECAT_SETUP.md.
 export const SUBSCRIPTION_PLANS = [
   {
-    id: 'pro_monthly',
+    // App Store Product IDs — Apple blocks reuse of deleted IDs, so these
+    // match App Store Connect (`*_subscription`) rather than the original short IDs.
+    id: 'pro_monthly_subscription',
     name: 'Pro Monthly',
     price: '99 kr',
     period: '/month',
@@ -19,7 +21,7 @@ export const SUBSCRIPTION_PLANS = [
     ],
   },
   {
-    id: 'premium_monthly',
+    id: 'premium_monthly_subscription',
     name: 'Premium Monthly',
     price: '69 kr',
     period: '/month',

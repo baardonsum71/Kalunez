@@ -15,8 +15,8 @@ import {
 describe('revenuecat config', () => {
   it('defines all expected subscription plans', () => {
     const ids = SUBSCRIPTION_PLANS.map(p => p.id);
-    expect(ids).toContain('pro_monthly');
-    expect(ids).toContain('premium_monthly');
+    expect(ids).toContain('pro_monthly_subscription');
+    expect(ids).toContain('premium_monthly_subscription');
     expect(ids).toContain('premium_podcast_yearly');
     expect(SUBSCRIPTION_PLANS).toHaveLength(5);
   });

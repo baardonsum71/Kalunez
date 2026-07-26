@@ -19,7 +19,7 @@ export default function ProSubscription() {
   const [manageLoading, setManageLoading] = useState(false);
   const [manageError, setManageError] = useState('');
 
-  const proPlan = getConfiguredPlans().find(p => p.id === 'pro_monthly');
+  const proPlan = getConfiguredPlans().find(p => p.id === 'pro_monthly_subscription');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);

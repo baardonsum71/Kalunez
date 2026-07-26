@@ -17,7 +17,7 @@ RevenueCat replaces Stripe Checkout for anything the buyer pays for directly (su
 
 ## 3. Create Products
 
-For each plan in `src/lib/revenuecat.js` (pro_monthly, premium_monthly, premium_podcast_monthly, premium_yearly, premium_podcast_yearly), plus consumables:
+For each plan in `src/lib/revenuecat.js` (`pro_monthly_subscription`, `premium_monthly_subscription`, `premium_podcast_monthly`, `premium_yearly`, `premium_podcast_yearly`), plus consumables:
 
 - Tips: `tip_credit_1`, `tip_credit_5`, `tip_credit_10`, `tip_credit_20`, `tip_credit_50`, `tip_credit_100`
 - Event tickets (consumables; artists type a custom price, checkout snaps to nearest):
@@ -27,7 +27,7 @@ For each plan in `src/lib/revenuecat.js` (pro_monthly, premium_monthly, premium_
 
 ## 4. Create an Offering
 
-**Project → Offerings → default** → attach all subscription products as packages (`pro_monthly`, `premium_monthly`, etc). The frontend fetches this via `getOfferings()`.
+**Project → Offerings → default** → attach all subscription products as packages (`pro_monthly_subscription`, `premium_monthly_subscription`, etc). The frontend fetches this via `getOfferings()`.
 
 ## 5. Enable Web Billing
 
