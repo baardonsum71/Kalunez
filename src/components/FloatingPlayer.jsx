@@ -68,11 +68,11 @@ export default function FloatingPlayer() {
         onEnded={handleEnded}
         onLoadedMetadata={handleTimeUpdate}
       />
-      <div className="fixed bottom-16 md:bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border"
+      <div className="fixed bottom-16 md:bottom-0 left-0 right-0 z-40 bg-black/90 backdrop-blur-md border-t border-white/10"
            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         {/* Progress bar */}
         <div
-          className="h-1 bg-secondary cursor-pointer"
+          className="h-1 bg-white/10 cursor-pointer"
           onClick={handleSeek}
           role="slider"
           aria-label="Seek"
@@ -89,12 +89,12 @@ export default function FloatingPlayer() {
         <div className="flex items-center gap-3 px-4 py-2 max-w-7xl mx-auto">
           {/* Cover */}
           <Link to={`/track/${state.track.id}`} className="shrink-0">
-            <div className="w-10 h-10 rounded-lg bg-secondary overflow-hidden shrink-0">
+            <div className="w-10 h-10 rounded-lg bg-secondary overflow-hidden shrink-0 ring-1 ring-white/10">
               {state.track.cover_url ? (
                 <img src={state.track.cover_url} alt={state.track.title} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900/40 to-pink-900/30">
-                  <Music className="w-4 h-4 text-purple-400/60" />
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[rgba(200,245,66,0.15)] to-[rgba(255,45,149,0.2)]">
+                  <Music className="w-4 h-4 text-white/50" />
                 </div>
               )}
             </div>
@@ -102,7 +102,7 @@ export default function FloatingPlayer() {
 
           {/* Info */}
           <div className="flex-1 min-w-0">
-            <Link to={`/track/${state.track.id}`} className="text-white text-sm font-semibold truncate block hover:text-purple-400 transition-colors">
+            <Link to={`/track/${state.track.id}`} className="text-white text-sm font-semibold truncate block hover:text-[var(--lime)] transition-colors">
               {state.track.title}
             </Link>
             <p className="text-muted-foreground text-xs truncate">{state.track.artist}</p>
@@ -121,8 +121,8 @@ export default function FloatingPlayer() {
             className="w-9 h-9 gradient-bg rounded-full flex items-center justify-center shrink-0 hover:opacity-90 transition-opacity"
           >
             {state.playing
-              ? <Pause className="w-4 h-4 text-white" />
-              : <Play className="w-4 h-4 text-white ml-0.5" />
+              ? <Pause className="w-4 h-4" />
+              : <Play className="w-4 h-4 ml-0.5" />
             }
           </button>
 

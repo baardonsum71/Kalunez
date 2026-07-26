@@ -1,114 +1,111 @@
 import { Link } from 'react-router-dom';
-import { Mic2, Upload, Radio, TrendingUp, Globe, Shield, Zap, DollarSign } from 'lucide-react';
+import { Upload, Radio, TrendingUp, Globe, Shield, Zap, DollarSign, Tv2 } from 'lucide-react';
 
 const features = [
-  { icon: Globe, title: 'Global Reach', desc: 'Share your music with listeners anywhere — from home studio to world stage.' },
-  { icon: Radio, title: 'Live Streaming', desc: 'Go live anytime, from your bedroom studio or on stage.' },
-  { icon: TrendingUp, title: 'Analytics', desc: 'Track your plays, likes, and audience growth in real time.' },
-  { icon: DollarSign, title: 'Monetize', desc: 'Earn from your music through tips, subscriptions, and more.' },
-  { icon: Shield, title: 'You Keep Your Rights', desc: 'Upload only your own music. You retain ownership — Kalunez hosts and streams it on your behalf.' },
-  { icon: Zap, title: 'Instant Upload', desc: 'Upload and publish your tracks in minutes, not days.' },
+  { icon: Tv2, title: 'Go Live', desc: 'Hit the booth from your browser — or pipe OBS via RTMP when you want the full rig.' },
+  { icon: DollarSign, title: 'Tips & tickets', desc: 'Earn from the floor: tips mid-set, optional ticketed nights, subscriptions.' },
+  { icon: Globe, title: 'Global floor', desc: 'Your set reaches listeners who could never fit in the room — same energy, wider reach.' },
+  { icon: TrendingUp, title: 'Read the room', desc: 'Plays, tips, and audience signals so you know what hits.' },
+  { icon: Shield, title: 'Your masters', desc: 'Upload originals you own. You keep the rights — we host and stream.' },
+  { icon: Zap, title: 'Drop fast', desc: 'Upload and publish in minutes. No label queue. No waiting for a green light.' },
 ];
 
 export default function ForArtists() {
   return (
     <div className="hero-gradient min-h-screen">
-      {/* Hero */}
-      <section className="relative pt-20 pb-24 px-4 text-center overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-purple-700/20 rounded-full blur-3xl" />
-          <div className="absolute top-1/2 right-1/4 w-80 h-80 bg-pink-700/15 rounded-full blur-3xl" />
+      <section className="relative min-h-[85svh] flex items-end md:items-center overflow-hidden club-grain">
+        <div className="absolute inset-0">
+          <img
+            src="https://images.unsplash.com/photo-1514525253161-7a06099daa1d?w=1600&h=1200&fit=crop&q=80"
+            alt=""
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050507] via-[#050507]/80 to-[#050507]/45" />
         </div>
-        <div className="relative max-w-4xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-purple-500/20 text-purple-300 text-sm font-semibold px-4 py-1.5 rounded-full mb-6">
-            <Mic2 className="w-4 h-4" /> For Artists
-          </div>
-          <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-5 leading-tight">
-            Your Stage.<br />
-            <span className="gradient-text">The Entire World.</span>
+        <div className="hero-sweep" aria-hidden />
+
+        <div className="relative z-[2] w-full max-w-6xl mx-auto px-4 pt-[calc(6rem+var(--safe-top))] pb-16 md:pb-24">
+          <p className="font-display text-sm tracking-[0.25em] text-[var(--lime)] mb-3">FOR ARTISTS</p>
+          <h1 className="font-display text-5xl sm:text-6xl md:text-8xl text-white leading-[0.92] mb-4 max-w-3xl">
+            OWN THE<br />
+            <span className="gradient-text">MAIN ROOM</span>
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-10">
-            Upload original tracks, go live, and build your audience — on your own terms.
-            No label required. No waiting for approval.
+          <p className="text-white/75 max-w-md mb-8 text-base md:text-lg">
+            Upload. Go live. Collect tips. Ticket the night. Built for DJs and artists who run the floor.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/upload" className="gradient-bg text-white px-8 py-3 rounded-full font-semibold flex items-center gap-2 justify-center hover:opacity-90 transition-opacity">
-              <Upload className="w-5 h-5" /> Upload Your Music
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link
+              to="/upload"
+              className="gradient-bg px-8 py-3.5 rounded-xl font-bold flex items-center gap-2 justify-center hover:opacity-90 transition-opacity text-sm uppercase tracking-wide"
+            >
+              <Upload className="w-5 h-5" /> Drop a track
             </Link>
-            <Link to="/go-live" className="border border-white/30 text-white px-8 py-3 rounded-full font-semibold flex items-center gap-2 justify-center hover:bg-white/10 transition-colors">
-              <Radio className="w-5 h-5" /> Start Streaming
+            <Link
+              to="/go-live"
+              className="border border-white/25 bg-black/40 text-white px-8 py-3.5 rounded-xl font-semibold flex items-center gap-2 justify-center hover:border-[var(--magenta)]/50 transition-colors text-sm"
+            >
+              <Radio className="w-5 h-5" /> Go Live
             </Link>
           </div>
         </div>
       </section>
 
-      {/* How it works */}
-      <section className="max-w-5xl mx-auto px-4 pb-20">
-        <div className="bg-gradient-to-r from-cyan-900/30 to-teal-900/20 border border-cyan-500/20 rounded-2xl overflow-hidden grid md:grid-cols-2">
-          <div className="p-8 flex flex-col justify-center">
-            <h2 className="text-2xl font-bold text-white mb-4">Stream from anywhere</h2>
-            <p className="text-muted-foreground mb-6">
-              Upload tracks in minutes or go live from your browser. Use OBS with RTMP when you want a pro setup.
-              No expensive venue — just you and your music.
-            </p>
-            <Link to="/go-live" className="gradient-bg text-white w-fit px-5 py-2.5 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity flex items-center gap-2">
-              <Radio className="w-4 h-4" /> Try Go Live →
-            </Link>
-          </div>
-          <div className="relative min-h-48 bg-gradient-to-br from-purple-900/40 to-cyan-900/30 flex items-center justify-center">
-            <div className="text-center p-8">
-              <Mic2 className="w-16 h-16 text-purple-400/60 mx-auto mb-3" />
-              <p className="text-muted-foreground text-sm">Your content. Your rights. Your audience.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Grid */}
-      <section className="max-w-6xl mx-auto px-4 pb-20">
-        <h2 className="text-3xl font-bold text-white text-center mb-12">Everything You Need to Succeed</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <section className="max-w-6xl mx-auto px-4 py-16 md:py-20">
+        <h2 className="font-display text-4xl md:text-5xl text-white mb-3 tracking-wide">THE RIG</h2>
+        <p className="text-muted-foreground mb-10 max-w-xl text-sm md:text-base">
+          Everything between the booth and the crowd — without the SaaS brochure tone.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {features.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="bg-gradient-to-br from-cyan-900/30 to-teal-900/20 border border-cyan-500/20 rounded-xl p-6 hover:border-cyan-400/50 transition-all">
-              <div className="w-12 h-12 gradient-bg rounded-xl flex items-center justify-center mb-4">
-                <Icon className="w-6 h-6 text-white" />
+            <div
+              key={title}
+              className="card-lift border border-white/10 bg-white/[0.03] rounded-xl p-6"
+            >
+              <div className="w-11 h-11 rounded-lg gradient-bg flex items-center justify-center mb-4">
+                <Icon className="w-5 h-5" />
               </div>
-              <h3 className="text-white font-semibold mb-2">{title}</h3>
-              <p className="text-muted-foreground text-sm">{desc}</p>
+              <h3 className="font-display text-2xl text-white mb-2 tracking-wide">{title}</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">{desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Rights & licensing */}
-      <section className="max-w-4xl mx-auto px-4 pb-20">
-        <div className="bg-gradient-to-br from-purple-900/30 to-cyan-900/20 border border-purple-500/20 rounded-2xl p-8 md:p-10">
-          <h2 className="text-2xl font-bold text-white mb-4">Your music, your responsibility</h2>
+      <section className="max-w-4xl mx-auto px-4 pb-16">
+        <div className="border border-white/10 bg-black/40 rounded-2xl p-8 md:p-10">
+          <h2 className="font-display text-3xl text-white mb-4 tracking-wide">YOUR MUSIC, YOUR CALL</h2>
           <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-            Kalunez is a platform for <strong className="text-foreground">original uploads</strong> — not a catalog from Spotify or other streaming services.
-            When you upload or go live, you confirm that you own the recording (or have permission) and that you have cleared samples, covers, and artwork.
+            Kalunez is for <strong className="text-white">original uploads</strong> — not ripped catalogs.
+            When you upload or go live, you confirm you own the recording (or have permission) and cleared samples, covers, and artwork.
           </p>
           <ul className="text-sm text-muted-foreground space-y-2 mb-6 list-disc pl-5">
-            <li><strong className="text-foreground">Original music you wrote and recorded</strong> — you typically own the rights. You grant Kalunez permission to host and stream it.</li>
-            <li><strong className="text-foreground">Covers, samples, or beats you don't fully control</strong> — you must get the necessary permissions yourself before uploading.</li>
-            <li><strong className="text-foreground">Never upload</strong> rips from Spotify, Apple Music, YouTube, or any source you don't have rights to.</li>
+            <li><strong className="text-white">Originals you made</strong> — you keep ownership; we host and stream.</li>
+            <li><strong className="text-white">Covers / samples</strong> — clear rights yourself before upload.</li>
+            <li><strong className="text-white">Never upload</strong> rips from Spotify, Apple Music, or YouTube.</li>
           </ul>
           <p className="text-xs text-muted-foreground">
-            Kalunez does not provide legal advice. See our{' '}
-            <Link to="/terms" className="text-purple-400 hover:underline">Terms of Service</Link> and{' '}
-            <Link to="/dmca" className="text-purple-400 hover:underline">DMCA Policy</Link> for details.
+            See{' '}
+            <Link to="/terms" className="text-[var(--lime)] hover:underline">Terms</Link> and{' '}
+            <Link to="/dmca" className="text-[var(--lime)] hover:underline">DMCA</Link>.
           </p>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="max-w-4xl mx-auto px-4 pb-24 text-center">
-        <div className="bg-gradient-to-r from-cyan-900/40 to-teal-900/30 border border-cyan-500/30 rounded-2xl p-12">
-          <h2 className="text-4xl font-bold text-white mb-4">Ready to Be Heard?</h2>
-          <p className="text-muted-foreground mb-8">Create your artist profile, upload your first track, and start building your audience today.</p>
-          <Link to="/upload" className="gradient-bg text-white px-10 py-3.5 rounded-full font-semibold text-lg hover:opacity-90 transition-opacity inline-flex items-center gap-2">
-            <Upload className="w-5 h-5" /> Get Started Free
-          </Link>
+      <section className="max-w-4xl mx-auto px-4 pb-24">
+        <div className="relative overflow-hidden rounded-2xl border border-white/10 px-8 py-12 md:px-12 text-center">
+          <div className="absolute inset-0 bg-gradient-to-br from-[rgba(200,245,66,0.12)] to-[rgba(255,45,149,0.12)]" />
+          <div className="relative">
+            <h2 className="font-display text-5xl md:text-6xl text-white mb-3 tracking-wide">SOUNDCHECK?</h2>
+            <p className="text-white/70 mb-8 max-w-md mx-auto">
+              Create your profile, drop a track or go live — the floor is open.
+            </p>
+            <Link
+              to="/upload"
+              className="gradient-bg px-10 py-3.5 rounded-xl font-bold text-sm uppercase tracking-wide hover:opacity-90 transition-opacity inline-flex items-center gap-2"
+            >
+              <Upload className="w-5 h-5" /> Get on the decks
+            </Link>
+          </div>
         </div>
       </section>
     </div>

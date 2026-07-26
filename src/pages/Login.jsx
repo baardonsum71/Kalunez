@@ -62,7 +62,7 @@ export default function Login() {
     <div className="hero-gradient min-h-screen flex items-center justify-center px-4 pt-[var(--safe-top)] pb-[var(--safe-bottom)]">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <Link to="/" className="text-2xl font-bold text-white">Kalunez</Link>
+          <Link to="/" className="font-display text-4xl tracking-wide logo-gradient-text">KALUNEZ</Link>
           <p className="text-muted-foreground mt-2">
             {mode === 'signin' && 'Sign in to continue'}
             {mode === 'signup' && 'Create your account'}

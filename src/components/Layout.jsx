@@ -65,9 +65,9 @@ export default function Layout() {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen bg-background font-inter">
+    <div className="min-h-screen bg-background font-body">
       <nav
-        className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-[#020d1a]/95 via-[#041424]/95 to-[#061c2e]/95 backdrop-blur-md border-b border-cyan-500/20 safe-top"
+        className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10 safe-top"
         aria-label={t('nav.mainNav')}
       >
         {!isRootScreen && (
@@ -81,14 +81,14 @@ export default function Layout() {
               <ChevronLeft className="w-5 h-5" />
             </button>
             <Link to="/" className="flex items-center gap-2">
-              <span className="text-sm font-bold tracking-widest logo-gradient-text uppercase">KALUNEZ</span>
+              <span className="font-display text-xl tracking-wide logo-gradient-text">KALUNEZ</span>
             </Link>
           </div>
         )}
 
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 select-none" aria-label="Kalunez home">
-            <span className="text-lg font-bold tracking-widest logo-gradient-text uppercase">KALUNEZ</span>
+            <span className="font-display text-2xl tracking-wide logo-gradient-text">KALUNEZ</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-1">
@@ -100,7 +100,7 @@ export default function Layout() {
                   to={href}
                   className={`select-none px-3 py-1.5 rounded-md text-sm font-medium transition-colors relative ${
                     location.pathname === href
-                      ? 'text-white bg-white/10'
+                      ? 'text-[var(--lime)] bg-white/5'
                       : 'text-muted-foreground hover:text-white hover:bg-white/5'
                   }`}
                 >
@@ -135,7 +135,7 @@ export default function Layout() {
                 onClick={() => setMenuOpen(false)}
                 className={`select-none flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   location.pathname === href
-                    ? 'text-white bg-white/10'
+                    ? 'text-[var(--lime)] bg-white/5'
                     : 'text-muted-foreground hover:text-white hover:bg-white/5'
                 }`}
               >
@@ -165,7 +165,7 @@ export default function Layout() {
       <FloatingPlayer />
 
       <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border pb-[--safe-bottom]"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-t border-white/10 pb-[--safe-bottom]"
         aria-label="Mobile navigation"
       >
         <div className="flex">
@@ -180,10 +180,10 @@ export default function Layout() {
                 }}
                 aria-current={active ? 'page' : undefined}
                 className={`select-none flex-1 flex flex-col items-center justify-center gap-1 py-2.5 text-sm font-medium transition-colors h-11 ${
-                  active ? 'text-purple-400' : 'text-muted-foreground'
+                  active ? 'text-[var(--lime)]' : 'text-muted-foreground'
                 }`}
               >
-                <Icon className={`w-5 h-5 ${active ? 'text-purple-400' : ''}`} />
+                <Icon className={`w-5 h-5 ${active ? 'text-[var(--lime)]' : ''}`} />
                 {label}
               </Link>
             );

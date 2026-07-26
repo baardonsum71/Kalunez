@@ -36,7 +36,7 @@ function TrackCard({ track }) {
   };
 
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden hover:border-purple-500/50 transition-all group">
+    <div className="card-lift bg-card border border-white/10 rounded-xl overflow-hidden group">
       <Link to={`/track/${track.id}`}>
         <div className="relative aspect-square bg-secondary">
           {track.cover_url ? (
@@ -47,22 +47,22 @@ function TrackCard({ track }) {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900/40 to-pink-900/30">
-              <Music className="w-12 h-12 text-purple-400/50" />
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[rgba(200,245,66,0.12)] to-[rgba(255,45,149,0.15)]">
+              <Music className="w-12 h-12 text-white/30" />
             </div>
           )}
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
             <button
               type="button"
               onClick={(e) => { e.preventDefault(); playTrack(track); }}
               aria-label={`Play ${track.title}`}
               className="w-12 h-12 gradient-bg rounded-full flex items-center justify-center shadow-lg"
             >
-              <Play className="w-5 h-5 text-white ml-0.5" />
+              <Play className="w-5 h-5 ml-0.5" />
             </button>
           </div>
           {track.genre && (
-            <span className="absolute top-2 left-2 bg-black/60 text-purple-300 text-xs px-2 py-0.5 rounded-full">
+            <span className="absolute top-2 left-2 bg-black/70 text-[var(--lime)] text-xs px-2 py-0.5 rounded-md font-semibold">
               {track.genre}
             </span>
           )}
@@ -71,7 +71,7 @@ function TrackCard({ track }) {
       <div className="p-3">
         <h3 className="text-white font-semibold text-sm truncate">{track.title}</h3>
         <div className="flex items-center justify-between mt-0.5">
-          <Link to={`/artist/${encodeURIComponent(track.artist)}`} className="text-muted-foreground text-xs truncate hover:text-purple-400 transition-colors">{track.artist}</Link>
+          <Link to={`/artist/${encodeURIComponent(track.artist)}`} className="text-muted-foreground text-xs truncate hover:text-[var(--lime)] transition-colors">{track.artist}</Link>
           <FollowButton artistName={track.artist} />
         </div>
         <div className="flex items-center justify-between mt-2">

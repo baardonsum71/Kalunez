@@ -5,7 +5,9 @@ module.exports = {
   theme: {
   	extend: {
       fontFamily: {
-        inter: ['var(--font-inter)'],
+        inter: ['var(--font-body)'],
+        display: ['var(--font-display)'],
+        body: ['var(--font-body)'],
       },
   		borderRadius: {
   			lg: 'var(--radius)',
@@ -74,8 +76,8 @@ module.exports = {
   				to: { height: '0' }
   			},
         'pulse-glow': {
-          '0%, 100%': { boxShadow: '0 0 8px rgba(168, 85, 247, 0.4)' },
-          '50%': { boxShadow: '0 0 20px rgba(168, 85, 247, 0.8)' }
+          '0%, 100%': { boxShadow: '0 0 8px rgba(200, 245, 66, 0.35)' },
+          '50%': { boxShadow: '0 0 22px rgba(255, 45, 149, 0.55)' }
         }
   		},
   		animation: {

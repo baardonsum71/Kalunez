@@ -4,42 +4,47 @@
 @tailwind utilities;
 
 @layer base {
-  /* Kalunez is dark-only. Do not follow OS light mode — it made
-     bg-secondary / inputs light gray on dark hero pages (unreadable). */
+  /* Kalunez club / afterhours — dark-only, lime + magenta. */
   :root {
     color-scheme: dark;
 
-    --background: 222 47% 5%;
-    --foreground: 210 40% 98%;
-    --card: 222 40% 9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 40% 9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 199 95% 55%;
-    --primary-foreground: 222 47% 5%;
-    --secondary: 222 35% 12%;
-    --secondary-foreground: 210 40% 96%;
-    --muted: 222 30% 14%;
-    --muted-foreground: 210 20% 72%;
-    --accent: 168 80% 45%;
-    --accent-foreground: 222 47% 5%;
+    --background: 240 10% 3%;
+    --foreground: 60 10% 96%;
+    --card: 240 8% 7%;
+    --card-foreground: 60 10% 96%;
+    --popover: 240 8% 7%;
+    --popover-foreground: 60 10% 96%;
+    --primary: 74 90% 55%;
+    --primary-foreground: 240 10% 4%;
+    --secondary: 240 8% 10%;
+    --secondary-foreground: 60 8% 92%;
+    --muted: 240 6% 12%;
+    --muted-foreground: 240 5% 68%;
+    --accent: 320 90% 58%;
+    --accent-foreground: 60 10% 98%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 222 25% 22%;
-    --input: 222 35% 12%;
-    --ring: 199 95% 55%;
-    --radius: 0.75rem;
+    --border: 240 6% 18%;
+    --input: 240 8% 10%;
+    --ring: 74 90% 55%;
+    --radius: 0.65rem;
 
-    --sidebar-background: 222 47% 5%;
-    --sidebar-foreground: 210 30% 85%;
-    --sidebar-primary: 199 95% 55%;
-    --sidebar-primary-foreground: 222 47% 5%;
-    --sidebar-accent: 222 35% 15%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 222 30% 16%;
-    --sidebar-ring: 199 95% 55%;
+    --sidebar-background: 240 10% 3%;
+    --sidebar-foreground: 60 8% 90%;
+    --sidebar-primary: 74 90% 55%;
+    --sidebar-primary-foreground: 240 10% 4%;
+    --sidebar-accent: 240 8% 12%;
+    --sidebar-accent-foreground: 60 10% 96%;
+    --sidebar-border: 240 6% 16%;
+    --sidebar-ring: 74 90% 55%;
 
-    --font-inter: 'Inter', sans-serif;
+    --font-display: 'Bebas Neue', Impact, sans-serif;
+    --font-body: 'DM Sans', system-ui, sans-serif;
+    /* Keep alias so existing font-inter classes still resolve. */
+    --font-inter: var(--font-body);
+
+    --lime: #c8f542;
+    --magenta: #ff2d95;
   }
 }
 
@@ -55,9 +60,13 @@
     background-color: hsl(var(--background));
   }
   body {
-    @apply bg-background text-foreground font-inter antialiased;
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-body);
   }
-  /* Form controls: always dark surface + light text (beats Safari/OS light UA styles). */
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: 0.02em;
+  }
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
   textarea,
   select {
@@ -82,32 +91,90 @@
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #06b6d4, #10b981);
+  background: linear-gradient(120deg, #c8f542 0%, #ff2d95 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .logo-gradient-text {
-  background: linear-gradient(90deg, #22d3ee 0%, #7c3aed 100%);
+  background: linear-gradient(90deg, #c8f542 0%, #ff2d95 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .gradient-bg {
-  background: linear-gradient(135deg, #0ea5e9, #10b981);
+  background: linear-gradient(135deg, #c8f542 0%, #ff2d95 100%);
+  color: #0a0a0c;
 }
 
 .hero-gradient {
-  background: linear-gradient(180deg, #020b14 0%, #041423 35%, #041c2c 70%, #030e1a 100%);
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(255, 45, 149, 0.18), transparent 55%),
+    radial-gradient(ellipse 70% 45% at 90% 10%, rgba(200, 245, 66, 0.12), transparent 50%),
+    linear-gradient(180deg, #050507 0%, #0a0a0f 40%, #08080c 100%);
 }
 
 .card-gradient {
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(219, 39, 119, 0.08));
+  background: linear-gradient(145deg, rgba(200, 245, 66, 0.08), rgba(255, 45, 149, 0.06));
 }
 
-/* Safe area insets for mobile */
+.club-grain {
+  position: relative;
+  isolation: isolate;
+}
+.club-grain::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+.hero-sweep {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.hero-sweep::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: -40%;
+  width: 45%;
+  height: 140%;
+  background: linear-gradient(100deg, transparent, rgba(200, 245, 66, 0.07), transparent);
+  animation: hero-sweep 8s ease-in-out infinite;
+}
+
+@keyframes hero-sweep {
+  0%, 100% { transform: translateX(0) rotate(12deg); opacity: 0.4; }
+  50% { transform: translateX(180%) rotate(12deg); opacity: 1; }
+}
+
+.live-pulse {
+  animation: live-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 45, 149, 0.55); }
+  50% { box-shadow: 0 0 0 8px rgba(255, 45, 149, 0); }
+}
+
+.card-lift {
+  transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+}
+.card-lift:hover {
+  transform: translateY(-3px);
+  border-color: rgba(200, 245, 66, 0.35);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 24px rgba(255, 45, 149, 0.08);
+}
+
 :root {
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -127,12 +194,10 @@ pb-\[--safe-bottom\] {
   padding-top: env(safe-area-inset-top, 0px);
 }
 
-/* Prevent overscroll rubber-banding */
 html, body {
   overscroll-behavior: none;
 }
 
-/* Route transition */
 .page-enter {
   opacity: 0;
   transform: translateX(12px);
@@ -143,7 +208,6 @@ html, body {
   transition: opacity 220ms ease, transform 220ms ease;
 }
 
-/* Scroll preservation for mobile tabs */
 .tab-scroll-container {
   scroll-behavior: auto;
 }
@@ -152,23 +216,20 @@ html, body {
   height: auto;
 }
 
-/* Allow text selection in content areas */
-p, span:not([role="button"]), div:not([role="navigation"]):not([role="button"]), 
+p, span:not([role="button"]), div:not([role="navigation"]):not([role="button"]),
 .comment-text, .track-description, .policy-content, .message-text {
   user-select: text;
   -webkit-user-select: text;
 }
 
-/* Mobile text sizing: upgrade xs to sm in mobile views */
 @media (max-width: 768px) {
   .text-xs {
     @apply text-sm;
   }
 }
 
-/* Mobile touch targets: ensure 44px minimum height */
 @media (max-width: 768px) {
   button, a, [role="button"], [role="link"] {
-    min-height: 2.75rem; /* 44px */
+    min-height: 2.75rem;
   }
 }
