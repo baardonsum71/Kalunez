@@ -3,39 +3,41 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Music, Radio, Zap, Mic2, Upload, Menu, X, ChevronLeft, Home, Settings, Tv2, BarChart2, MessageSquare, Bell } from 'lucide-react';
 import FloatingPlayer from '@/components/FloatingPlayer';
 import Footer from '@/components/Footer';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { filterRows } from '@/lib/db';
 import { useAuth } from '@/lib/AuthContext';
 
 const ROOT_SCREENS = ['/', '/discover', '/library', '/live'];
 
-const navLinks = [
-  { label: 'Discover', href: '/discover', icon: Zap },
-  { label: 'Library', href: '/library', icon: Music },
-  { label: 'Live', href: '/live', icon: Radio },
-  { label: 'For Artists', href: '/for-artists', icon: Mic2 },
-  { label: 'Upload', href: '/upload', icon: Upload },
-  { label: 'Go Live', href: '/go-live', icon: Tv2 },
-  { label: 'Dashboard', href: '/artist-dashboard', icon: BarChart2 },
-  { label: 'Messages', href: '/messages', icon: MessageSquare },
-  { label: 'Notifications', href: '/notifications', icon: Bell },
-  { label: 'Settings', href: '/settings', icon: Settings },
-];
-
-const bottomNavLinks = [
-  { label: 'Home', href: '/', icon: Home },
-  { label: 'Discover', href: '/discover', icon: Zap },
-  { label: 'Library', href: '/library', icon: Music },
-  { label: 'Live', href: '/live', icon: Radio },
-];
-
 export default function Layout() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
   const scrollPositions = useRef({});
+
+  const navLinks = useMemo(() => [
+    { label: t('nav.discover'), href: '/discover', icon: Zap },
+    { label: t('nav.library'), href: '/library', icon: Music },
+    { label: t('nav.live'), href: '/live', icon: Radio },
+    { label: t('nav.forArtists'), href: '/for-artists', icon: Mic2 },
+    { label: t('nav.upload'), href: '/upload', icon: Upload },
+    { label: t('nav.goLive'), href: '/go-live', icon: Tv2 },
+    { label: t('nav.dashboard'), href: '/artist-dashboard', icon: BarChart2 },
+    { label: t('nav.messages'), href: '/messages', icon: MessageSquare },
+    { label: t('nav.notifications'), href: '/notifications', icon: Bell },
+    { label: t('nav.settings'), href: '/settings', icon: Settings },
+  ], [t]);
+
+  const bottomNavLinks = useMemo(() => [
+    { label: t('nav.home'), href: '/', icon: Home },
+    { label: t('nav.discover'), href: '/discover', icon: Zap },
+    { label: t('nav.library'), href: '/library', icon: Music },
+    { label: t('nav.live'), href: '/live', icon: Radio },
+  ], [t]);
 
   const { data: notifications = [] } = useQuery({
     queryKey: ['notifications-badge', user?.email],
@@ -66,14 +68,14 @@ export default function Layout() {
     <div className="min-h-screen bg-background font-inter">
       <nav
         className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-[#020d1a]/95 via-[#041424]/95 to-[#061c2e]/95 backdrop-blur-md border-b border-cyan-500/20 safe-top"
-        aria-label="Main navigation"
+        aria-label={t('nav.mainNav')}
       >
         {!isRootScreen && (
           <div className="md:hidden flex items-center h-11 px-3 gap-2">
             <button
               type="button"
               onClick={() => navigate(-1)}
-              aria-label="Go back"
+              aria-label={t('nav.back')}
               className="p-2.5 rounded-full hover:bg-white/10 text-muted-foreground hover:text-white transition-colors"
             >
               <ChevronLeft className="w-5 h-5" />

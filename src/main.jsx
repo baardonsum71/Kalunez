@@ -18,6 +18,7 @@ if (Capacitor.isNativePlatform()) {
 
 import App from '@/App.jsx'
 import '@/index.css'
+import '@/i18n'
 import { getCookieConsent } from '@/lib/cookieConsent'
 import { applyConsentToServices } from '@/lib/applyConsent'
 
