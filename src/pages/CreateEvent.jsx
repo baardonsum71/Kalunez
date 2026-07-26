@@ -147,7 +147,7 @@ export default function CreateEvent() {
             />
           </div>
 
-          <div className="space-y-3 rounded-xl border border-border bg-secondary/40 p-4">
+          <div className="space-y-3 rounded-xl border border-white/15 bg-black/40 p-4">
             <p className="text-white text-sm font-semibold flex items-center gap-2">
               <Ticket className="w-4 h-4 text-yellow-400" /> Access
             </p>
@@ -156,21 +156,25 @@ export default function CreateEvent() {
                 type="button"
                 onClick={() => setForm((f) => ({ ...f, is_paid: false }))}
                 className={`rounded-xl border px-3 py-3 text-left text-sm transition-all ${
-                  !form.is_paid ? 'border-purple-500 bg-purple-500/10 text-white' : 'border-border text-muted-foreground'
+                  !form.is_paid
+                    ? 'border-purple-500 bg-purple-500/25 text-white'
+                    : 'border-white/20 bg-white/5 text-white hover:bg-white/10'
                 }`}
               >
-                <span className="font-semibold block">Free live</span>
-                <span className="text-xs opacity-80">Anyone can watch</span>
+                <span className="font-semibold block text-white">Free live</span>
+                <span className="text-xs text-white/70">Anyone can watch</span>
               </button>
               <button
                 type="button"
                 onClick={() => setForm((f) => ({ ...f, is_paid: true }))}
                 className={`rounded-xl border px-3 py-3 text-left text-sm transition-all ${
-                  form.is_paid ? 'border-yellow-500 bg-yellow-500/10 text-white' : 'border-border text-muted-foreground'
+                  form.is_paid
+                    ? 'border-yellow-400 bg-yellow-500/25 text-white'
+                    : 'border-white/20 bg-white/5 text-white hover:bg-white/10'
                 }`}
               >
-                <span className="font-semibold block">Paid ticket</span>
-                <span className="text-xs opacity-80">One price per event</span>
+                <span className="font-semibold block text-white">Paid ticket</span>
+                <span className="text-xs text-white/70">One price per event</span>
               </button>
             </div>
             {form.is_paid && (
@@ -183,7 +187,7 @@ export default function CreateEvent() {
                     className={`rounded-lg border py-2 text-sm font-bold transition-all ${
                       form.ticket_product_id === tier.id
                         ? 'border-yellow-400 bg-yellow-500 text-black'
-                        : 'border-border text-foreground hover:border-yellow-500/50'
+                        : 'border-white/20 bg-white/5 text-white hover:border-yellow-400/60'
                     }`}
                   >
                     {tier.label}
