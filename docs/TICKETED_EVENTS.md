@@ -8,7 +8,7 @@ Optional paid concerts on top of free Go Live. Free streams and tips still work 
 |------|-----|
 | Free Go Live | `/go-live` — immediate, everyone can watch |
 | Scheduled free event | `/create-event` → Free live |
-| Scheduled paid event | `/create-event` → Paid ticket (49 / 99 / 149 kr) |
+| Scheduled paid event | `/create-event` → Paid ticket (49 / 99 / 149 / 199 / 299 kr) |
 
 ## Setup
 
@@ -18,6 +18,8 @@ Optional paid concerts on top of free Go Live. Free streams and tips still work 
    - `event_ticket_49`
    - `event_ticket_99`
    - `event_ticket_149`
+   - `event_ticket_199`
+   - `event_ticket_299`
 3. Attach them to the default Offering with the **same package identifiers**.
 4. Redeploy webhook: `supabase functions deploy handleRevenueCatWebhook`
 

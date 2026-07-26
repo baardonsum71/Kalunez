@@ -9,7 +9,6 @@ import {
   getTicketPriceById,
   formatTicketPrice,
   nearestTicketTier,
-  parseTicketPriceKr,
 } from './revenuecat';
 
 describe('revenuecat config', () => {
@@ -41,20 +40,16 @@ describe('revenuecat config', () => {
     expect(TIP_AMOUNTS).toEqual([1, 5, 10, 20, 50, 100]);
   });
 
-  it('TICKET_PRICES defines consumable tiers including legacy prices', () => {
-    const ids = TICKET_PRICES.map((t) => t.id);
-    expect(ids).toContain('event_ticket_49');
-    expect(ids).toContain('event_ticket_99');
-    expect(ids).toContain('event_ticket_149');
-    expect(ids).toContain('event_ticket_299');
+  it('TICKET_PRICES defines the five fixed ticket tiers', () => {
+    expect(TICKET_PRICES.map((t) => t.id)).toEqual([
+      'event_ticket_49',
+      'event_ticket_99',
+      'event_ticket_149',
+      'event_ticket_199',
+      'event_ticket_299',
+    ]);
     expect(getTicketPriceById('event_ticket_99')?.price_cents).toBe(9900);
     expect(formatTicketPrice(4900)).toBe('49 kr');
-  });
-
-  it('nearestTicketTier snaps custom prices to a checkout SKU', () => {
-    expect(nearestTicketTier(8000)?.id).toBe('event_ticket_69');
-    expect(nearestTicketTier(12000)?.id).toBe('event_ticket_129');
-    expect(parseTicketPriceKr('99')).toBe(9900);
-    expect(parseTicketPriceKr('9')).toBeNull();
+    expect(nearestTicketTier(10000)?.id).toBe('event_ticket_99');
   });
 });

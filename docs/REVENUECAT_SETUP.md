@@ -20,8 +20,8 @@ RevenueCat replaces Stripe Checkout for anything the buyer pays for directly (su
 For each plan in `src/lib/revenuecat.js` (`pro_monthly_subscription`, `premium_monthly_subscription`, `premium_podcast_monthly`, `premium_yearly`, `premium_podcast_yearly`), plus consumables:
 
 - Tips: `tip_credit_1`, `tip_credit_5`, `tip_credit_10`, `tip_credit_20`, `tip_credit_50`, `tip_credit_100`
-- Event tickets (consumables; artists type a custom price, checkout snaps to nearest):
-  `event_ticket_29`, `_49`, `_69`, `_99`, `_129`, `_149`, `_199`, `_249`, `_299`, `_399`, `_499`
+- Event tickets (consumables, fixed prices):
+  `event_ticket_49`, `_99`, `_149`, `_199`, `_299`
 
 **Project → Products → +** — attach each subscription product to its matching entitlement. Tip and ticket products are **consumables**, not attached to an entitlement. Add all packages to the default Offering with identifiers matching the product IDs exactly.
 

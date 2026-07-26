@@ -83,26 +83,16 @@ export const SUBSCRIPTION_PLANS = [
 export const TIP_AMOUNTS = [1, 5, 10, 20, 50, 100];
 
 /**
- * Ticket price points for Apple IAP / RevenueCat consumables.
- * Artists can type any price; checkout snaps to the nearest of these SKUs.
+ * Fixed ticket price points for Apple IAP / RevenueCat consumables.
  * Add matching consumables in RevenueCat / App Store Connect.
  */
 export const TICKET_PRICES = [
-  { id: 'event_ticket_29', price_cents: 2900, label: '29 kr' },
   { id: 'event_ticket_49', price_cents: 4900, label: '49 kr' },
-  { id: 'event_ticket_69', price_cents: 6900, label: '69 kr' },
   { id: 'event_ticket_99', price_cents: 9900, label: '99 kr' },
-  { id: 'event_ticket_129', price_cents: 12900, label: '129 kr' },
   { id: 'event_ticket_149', price_cents: 14900, label: '149 kr' },
   { id: 'event_ticket_199', price_cents: 19900, label: '199 kr' },
-  { id: 'event_ticket_249', price_cents: 24900, label: '249 kr' },
   { id: 'event_ticket_299', price_cents: 29900, label: '299 kr' },
-  { id: 'event_ticket_399', price_cents: 39900, label: '399 kr' },
-  { id: 'event_ticket_499', price_cents: 49900, label: '499 kr' },
 ];
-
-export const MIN_TICKET_KR = 10;
-export const MAX_TICKET_KR = 5000;
 
 export function getTicketPriceById(productId) {
   return TICKET_PRICES.find((p) => p.id === productId);
@@ -112,24 +102,13 @@ export function formatTicketPrice(cents) {
   return `${Math.round((cents || 0) / 100)} kr`;
 }
 
-/** Nearest App Store / RevenueCat ticket SKU for a custom price. */
+/** Nearest ticket SKU (used if an older custom price_cents is on an event). */
 export function nearestTicketTier(priceCents) {
   const cents = Number(priceCents) || 0;
   return TICKET_PRICES.reduce((best, tier) => {
     if (!best) return tier;
     return Math.abs(tier.price_cents - cents) < Math.abs(best.price_cents - cents) ? tier : best;
   }, null);
-}
-
-/** Parse artist-entered kroner → cents, or null if invalid. */
-export function parseTicketPriceKr(value) {
-  const raw = String(value ?? '').trim().replace(',', '.');
-  if (!raw) return null;
-  const kr = Number(raw);
-  if (!Number.isFinite(kr)) return null;
-  const rounded = Math.round(kr);
-  if (rounded < MIN_TICKET_KR || rounded > MAX_TICKET_KR) return null;
-  return rounded * 100;
 }
 
 // Native (iOS App Store / Google Play) purchases go through the RevenueCat
