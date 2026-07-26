@@ -82,6 +82,11 @@ export const SUBSCRIPTION_PLANS = [
 
 export const TIP_AMOUNTS = [1, 5, 10, 20, 50, 100];
 
+/** App Store Product IDs for tips (old tip_credit_* IDs were burned / not reusable). */
+export function tipProductId(amountUsd) {
+  return `kalunez_tip_${amountUsd}`;
+}
+
 /**
  * Fixed ticket price points for Apple IAP / RevenueCat consumables.
  * Add matching consumables in RevenueCat / App Store Connect.
@@ -245,11 +250,11 @@ export async function purchaseTip(artistName, amountUsd) {
   await purchases.setAttributes({ artistName });
 
   const offerings = await purchases.getOfferings();
-  const tipProductId = `tip_credit_${amountUsd}`;
-  const rcPackage = findPackage(offerings, tipProductId);
+  const productId = tipProductId(amountUsd);
+  const rcPackage = findPackage(offerings, productId);
 
   if (!rcPackage) {
-    throw new Error(`RevenueCat tip product "${tipProductId}" not found. Configure it in RevenueCat (see docs/REVENUECAT_SETUP.md).`);
+    throw new Error(`RevenueCat tip product "${productId}" not found. Configure it in RevenueCat (see docs/REVENUECAT_SETUP.md).`);
   }
 
   await purchasePackage(purchases, rcPackage);

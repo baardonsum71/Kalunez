@@ -19,7 +19,8 @@ RevenueCat replaces Stripe Checkout for anything the buyer pays for directly (su
 
 For each plan in `src/lib/revenuecat.js` (`pro_monthly_subscription`, `premium_monthly_subscription`, `premium_podcast_monthly`, `premium_yearly`, `premium_podcast_yearly`), plus consumables:
 
-- Tips: `tip_credit_1`, `tip_credit_5`, `tip_credit_10`, `tip_credit_20`, `tip_credit_50`, `tip_credit_100`
+- Tips: `kalunez_tip_1`, `kalunez_tip_5`, `kalunez_tip_10`, `kalunez_tip_20`, `kalunez_tip_50`, `kalunez_tip_100`
+  (do not reuse burned `tip_credit_*` IDs — Apple blocks them)
 - Event tickets (consumables, fixed prices):
   `event_ticket_49`, `_99`, `_149`, `_199`, `_299`
 

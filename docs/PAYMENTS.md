@@ -82,7 +82,7 @@ If `managementURL` is `null` (Stripe Customer Portal not configured yet — see 
 
 **Subscription tier not updating** — Confirm the RevenueCat webhook is configured and `REVENUECAT_WEBHOOK_AUTH` matches on both sides. Check the product identifier is in `PRODUCT_TIER_MAP` in `supabase/functions/handleRevenueCatWebhook/index.ts`.
 
-**Tips not recording** — Ensure the tip product identifier starts with `tip_credit` and the purchase sets the `artistName` attribute before purchasing (see `src/lib/revenuecat.js`).
+**Tips not recording** — Ensure the tip product identifier starts with `kalunez_tip_` (or legacy `tip_credit_`) and the purchase sets the `artistName` attribute before purchasing (see `src/lib/revenuecat.js`).
 
 **"Artist has not set up payouts"** — Artist must complete Stripe Connect onboarding first (`charges_enabled` and `payouts_enabled` both `true`).
 

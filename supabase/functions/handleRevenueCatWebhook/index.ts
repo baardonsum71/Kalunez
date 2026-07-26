@@ -16,8 +16,12 @@ const PRODUCT_TIER_MAP: Record<string, string> = {
   premium_podcast_yearly: 'premium_podcast',
 };
 
-const TIP_PRODUCT_PREFIX = 'tip_credit';
+const TIP_PRODUCT_PREFIXES = ['kalunez_tip_', 'tip_credit_'];
 const TICKET_PRODUCT_PREFIX = 'event_ticket';
+
+function isTipProduct(productId: string): boolean {
+  return TIP_PRODUCT_PREFIXES.some((p) => productId.startsWith(p));
+}
 
 function tierForProduct(productId: string): string {
   return PRODUCT_TIER_MAP[productId] || 'pro';
@@ -135,7 +139,7 @@ Deno.serve(async (req) => {
     const service = getServiceClient();
     const productId: string = event.product_id || '';
 
-    if (productId.startsWith(TIP_PRODUCT_PREFIX) && event.type === 'NON_RENEWING_PURCHASE') {
+    if (isTipProduct(productId) && event.type === 'NON_RENEWING_PURCHASE') {
       await handleTipPurchase(service, event);
     } else if (productId.startsWith(TICKET_PRODUCT_PREFIX) && event.type === 'NON_RENEWING_PURCHASE') {
       await handleTicketPurchase(service, event);
