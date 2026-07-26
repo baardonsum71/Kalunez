@@ -15,13 +15,13 @@ export default function GetTicketButton({ event, onPurchased }) {
       navigateToLogin();
       return;
     }
-    if (!event?.ticket_product_id) {
-      toast({ title: 'Ticket not configured', description: 'This event has no ticket product.', variant: 'destructive' });
+    if (!event?.ticket_product_id && !event?.price_cents) {
+      toast({ title: 'Ticket not configured', description: 'This event has no ticket price.', variant: 'destructive' });
       return;
     }
     setLoading(true);
     try {
-      await purchaseEventTicket(event.id, event.ticket_product_id);
+      await purchaseEventTicket(event.id, event.ticket_product_id, event.price_cents);
       await queryClient.invalidateQueries({ queryKey: ['ticket', event.id, user.email] });
       toast({ title: "You're in!", description: 'Ticket purchased. Join when the concert starts.' });
       onPurchased?.();

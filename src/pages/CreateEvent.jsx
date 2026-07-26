@@ -4,10 +4,18 @@ import { CalendarPlus, Loader2, Ticket } from 'lucide-react';
 import { createRow } from '@/lib/db';
 import { useAuth } from '@/lib/AuthContext';
 import MobileSelect from '@/components/MobileSelect';
-import { TICKET_PRICES } from '@/lib/revenuecat';
+import {
+  TICKET_PRICES,
+  MIN_TICKET_KR,
+  MAX_TICKET_KR,
+  parseTicketPriceKr,
+  nearestTicketTier,
+  formatTicketPrice,
+} from '@/lib/revenuecat';
 import { toast } from '@/components/ui/use-toast';
 
 const CATEGORIES = ['Music', 'Electronic', 'Hip Hop', 'Rock', 'Jazz'];
+const QUICK_PRICES = [49, 99, 149, 199, 299];
 
 function toLocalInputValue(date) {
   const pad = (n) => String(n).padStart(2, '0');
@@ -26,8 +34,11 @@ export default function CreateEvent() {
     description: '',
     starts_at: toLocalInputValue(new Date(Date.now() + 60 * 60 * 1000)),
     is_paid: false,
-    ticket_product_id: 'event_ticket_99',
+    price_kr: '99',
   });
+
+  const requestedCents = form.is_paid ? parseTicketPriceKr(form.price_kr) : null;
+  const checkoutTier = requestedCents != null ? nearestTicketTier(requestedCents) : null;
 
   if (!user) {
     return (
@@ -54,10 +65,22 @@ export default function CreateEvent() {
       return;
     }
 
-    const ticket = form.is_paid ? TICKET_PRICES.find((t) => t.id === form.ticket_product_id) : null;
-    if (form.is_paid && !ticket) {
-      setError('Choose a ticket price.');
-      return;
+    let priceCents = 0;
+    let ticketProductId = null;
+    if (form.is_paid) {
+      const cents = parseTicketPriceKr(form.price_kr);
+      if (cents == null) {
+        setError(`Enter a ticket price between ${MIN_TICKET_KR} and ${MAX_TICKET_KR} kr.`);
+        return;
+      }
+      const tier = nearestTicketTier(cents);
+      if (!tier) {
+        setError('Choose a ticket price.');
+        return;
+      }
+      // Store the checkout price (nearest App Store / RevenueCat SKU) so display matches charge.
+      priceCents = tier.price_cents;
+      ticketProductId = tier.id;
     }
 
     setLoading(true);
@@ -72,15 +95,17 @@ export default function CreateEvent() {
         status: 'scheduled',
         starts_at: startsAt.toISOString(),
         is_paid: form.is_paid,
-        price_cents: ticket?.price_cents || 0,
-        ticket_product_id: ticket?.id || null,
+        price_cents: priceCents,
+        ticket_product_id: ticketProductId,
         viewer_count: 0,
         reaction_count: 0,
         created_by: user.email,
       });
       toast({
         title: 'Event published',
-        description: form.is_paid ? 'Fans can buy tickets from the Live page.' : 'Fans can find it under Upcoming.',
+        description: form.is_paid
+          ? `Fans can buy tickets (${formatTicketPrice(priceCents)}) from the Live page.`
+          : 'Fans can find it under Upcoming.',
       });
       navigate(`/stream/${record.id}`);
     } catch (err) {
@@ -178,21 +203,58 @@ export default function CreateEvent() {
               </button>
             </div>
             {form.is_paid && (
-              <div className="grid grid-cols-3 gap-2 pt-1">
-                {TICKET_PRICES.map((tier) => (
-                  <button
-                    key={tier.id}
-                    type="button"
-                    onClick={() => setForm((f) => ({ ...f, ticket_product_id: tier.id }))}
-                    className={`rounded-lg border py-2 text-sm font-bold transition-all ${
-                      form.ticket_product_id === tier.id
-                        ? 'border-yellow-400 bg-yellow-500 text-black'
-                        : 'border-white/20 bg-white/5 text-white hover:border-yellow-400/60'
-                    }`}
-                  >
-                    {tier.label}
-                  </button>
-                ))}
+              <div className="space-y-3 pt-1">
+                <div>
+                  <label className="text-xs text-white/80 mb-1.5 block">Your ticket price (kr)</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      min={MIN_TICKET_KR}
+                      max={MAX_TICKET_KR}
+                      step="1"
+                      value={form.price_kr}
+                      onChange={(e) => setForm((f) => ({ ...f, price_kr: e.target.value }))}
+                      placeholder="e.g. 120"
+                      className="w-full bg-black/50 border border-white/20 text-white text-lg font-bold px-3 py-3 pr-12 rounded-xl focus:outline-none focus:border-yellow-400"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 text-sm font-semibold">
+                      kr
+                    </span>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {QUICK_PRICES.map((kr) => (
+                    <button
+                      key={kr}
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, price_kr: String(kr) }))}
+                      className={`rounded-lg border px-3 py-1.5 text-xs font-bold transition-all ${
+                        String(form.price_kr) === String(kr)
+                          ? 'border-yellow-400 bg-yellow-500 text-black'
+                          : 'border-white/20 bg-white/5 text-white hover:border-yellow-400/60'
+                      }`}
+                    >
+                      {kr} kr
+                    </button>
+                  ))}
+                </div>
+                {checkoutTier && (
+                  <p className="text-xs text-white/70 leading-relaxed">
+                    Fans will pay{' '}
+                    <span className="text-yellow-300 font-semibold">{checkoutTier.label}</span>
+                    {requestedCents !== checkoutTier.price_cents && (
+                      <> (nearest available checkout price to {Math.round(requestedCents / 100)} kr)</>
+                    )}
+                    . App Store requires fixed price points
+                    {TICKET_PRICES.length ? ` (${TICKET_PRICES.map((t) => t.label.replace(' kr', '')).join(' / ')} kr)` : ''}.
+                  </p>
+                )}
+                {form.is_paid && requestedCents == null && form.price_kr !== '' && (
+                  <p className="text-xs text-amber-300">
+                    Enter a whole number between {MIN_TICKET_KR} and {MAX_TICKET_KR} kr.
+                  </p>
+                )}
               </div>
             )}
           </div>

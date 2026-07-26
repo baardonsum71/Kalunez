@@ -80,12 +80,27 @@ export const SUBSCRIPTION_PLANS = [
 
 export const TIP_AMOUNTS = [1, 5, 10, 20, 50, 100];
 
-/** Fixed ticket price tiers for Apple IAP / RevenueCat consumables. */
+/**
+ * Ticket price points for Apple IAP / RevenueCat consumables.
+ * Artists can type any price; checkout snaps to the nearest of these SKUs.
+ * Add matching consumables in RevenueCat / App Store Connect.
+ */
 export const TICKET_PRICES = [
+  { id: 'event_ticket_29', price_cents: 2900, label: '29 kr' },
   { id: 'event_ticket_49', price_cents: 4900, label: '49 kr' },
+  { id: 'event_ticket_69', price_cents: 6900, label: '69 kr' },
   { id: 'event_ticket_99', price_cents: 9900, label: '99 kr' },
+  { id: 'event_ticket_129', price_cents: 12900, label: '129 kr' },
   { id: 'event_ticket_149', price_cents: 14900, label: '149 kr' },
+  { id: 'event_ticket_199', price_cents: 19900, label: '199 kr' },
+  { id: 'event_ticket_249', price_cents: 24900, label: '249 kr' },
+  { id: 'event_ticket_299', price_cents: 29900, label: '299 kr' },
+  { id: 'event_ticket_399', price_cents: 39900, label: '399 kr' },
+  { id: 'event_ticket_499', price_cents: 49900, label: '499 kr' },
 ];
+
+export const MIN_TICKET_KR = 10;
+export const MAX_TICKET_KR = 5000;
 
 export function getTicketPriceById(productId) {
   return TICKET_PRICES.find((p) => p.id === productId);
@@ -93,6 +108,26 @@ export function getTicketPriceById(productId) {
 
 export function formatTicketPrice(cents) {
   return `${Math.round((cents || 0) / 100)} kr`;
+}
+
+/** Nearest App Store / RevenueCat ticket SKU for a custom price. */
+export function nearestTicketTier(priceCents) {
+  const cents = Number(priceCents) || 0;
+  return TICKET_PRICES.reduce((best, tier) => {
+    if (!best) return tier;
+    return Math.abs(tier.price_cents - cents) < Math.abs(best.price_cents - cents) ? tier : best;
+  }, null);
+}
+
+/** Parse artist-entered kroner → cents, or null if invalid. */
+export function parseTicketPriceKr(value) {
+  const raw = String(value ?? '').trim().replace(',', '.');
+  if (!raw) return null;
+  const kr = Number(raw);
+  if (!Number.isFinite(kr)) return null;
+  const rounded = Math.round(kr);
+  if (rounded < MIN_TICKET_KR || rounded > MAX_TICKET_KR) return null;
+  return rounded * 100;
 }
 
 // Native (iOS App Store / Google Play) purchases go through the RevenueCat
@@ -242,11 +277,16 @@ export async function purchaseTip(artistName, amountUsd) {
 /**
  * Purchase a ticket for a paid live event. Creates a `tickets` row after
  * a successful RevenueCat consumable purchase. Product IDs must match
- * TICKET_PRICES (event_ticket_49 / _99 / _149).
+ * TICKET_PRICES (or the nearest SKU for a custom artist price).
  */
-export async function purchaseEventTicket(eventId, ticketProductId) {
-  const tier = getTicketPriceById(ticketProductId);
+export async function purchaseEventTicket(eventId, ticketProductId, amountCents) {
+  const tier =
+    getTicketPriceById(ticketProductId) ||
+    nearestTicketTier(amountCents);
   if (!tier) throw new Error(`Unknown ticket product "${ticketProductId}"`);
+
+  const productId = tier.id;
+  const chargedCents = tier.price_cents;
 
   const { data: authData } = await supabase.auth.getUser();
   const email = authData?.user?.email;
@@ -256,10 +296,10 @@ export async function purchaseEventTicket(eventId, ticketProductId) {
   await purchases.setAttributes({ eventId: String(eventId) });
 
   const offerings = await purchases.getOfferings();
-  const rcPackage = findPackage(offerings, ticketProductId);
+  const rcPackage = findPackage(offerings, productId);
   if (!rcPackage) {
     throw new Error(
-      `RevenueCat ticket product "${ticketProductId}" not found. Add consumables event_ticket_49 / _99 / _149 — see docs/REVENUECAT_SETUP.md.`
+      `RevenueCat ticket product "${productId}" not found. Add matching consumables in RevenueCat — see docs/REVENUECAT_SETUP.md.`
     );
   }
 
@@ -276,15 +316,15 @@ export async function purchaseEventTicket(eventId, ticketProductId) {
     const { error } = await supabase.from('tickets').insert({
       event_id: eventId,
       user_email: email,
-      amount_cents: tier.price_cents,
-      ticket_product_id: ticketProductId,
+      amount_cents: amountCents || chargedCents,
+      ticket_product_id: productId,
     });
     if (error && !String(error.message || '').includes('duplicate')) {
       throw error;
     }
   }
 
-  return { eventId, ticketProductId, amount_cents: tier.price_cents };
+  return { eventId, ticketProductId: productId, amount_cents: amountCents || chargedCents };
 }
 
 export async function userHasTicket(eventId, userEmail) {
