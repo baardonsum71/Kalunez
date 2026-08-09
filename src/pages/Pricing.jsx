@@ -1,17 +1,24 @@
 import { useState } from 'react';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
-import { getConfiguredPlans, isBillingConfigured, purchasePlan } from '@/lib/revenuecat';
+import {
+  getConfiguredPlans,
+  isBillingConfigured,
+  isPurchaseCancelled,
+  purchasePlan,
+} from '@/lib/revenuecat';
 
 export default function Pricing() {
   const { user, navigateToLogin } = useAuth();
   const [loadingId, setLoadingId] = useState(null);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const plans = getConfiguredPlans();
   const billingReady = isBillingConfigured();
 
   const handleSubscribe = async (plan) => {
     setError('');
+    setSuccess('');
     if (!billingReady) {
       setError('Checkout is not configured yet for this platform. Prices are shown; payments need RevenueCat setup.');
       return;
@@ -24,8 +31,13 @@ export default function Pricing() {
     setLoadingId(plan.id);
     try {
       await purchasePlan(plan.id);
+      setSuccess(`Subscribed to ${plan.name}.`);
     } catch (err) {
-      setError(err.message || 'Checkout failed');
+      if (isPurchaseCancelled(err) || err?.userCancelled) {
+        setError('Purchase canceled.');
+      } else {
+        setError(err.message || 'Checkout failed');
+      }
     } finally {
       setLoadingId(null);
     }
@@ -49,6 +61,14 @@ export default function Pricing() {
         <div className="max-w-6xl mx-auto px-4 mb-4">
           <div className="bg-destructive/20 border border-destructive/50 text-destructive rounded-xl p-3 text-center text-sm">
             {error}
+          </div>
+        </div>
+      )}
+
+      {success && (
+        <div className="max-w-6xl mx-auto px-4 mb-4">
+          <div className="bg-green-900/30 border border-green-500/40 text-green-300 rounded-xl p-3 text-center text-sm">
+            {success}
           </div>
         </div>
       )}
@@ -92,12 +112,12 @@ export default function Pricing() {
                 type="button"
                 onClick={() => handleSubscribe(plan)}
                 disabled={loadingId === plan.id}
-                className={`w-full py-3 rounded-xl font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 ${
+                className={`w-full py-3 rounded-xl font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 touch-manipulation ${
                   plan.popular ? 'bg-gradient-to-r from-purple-500 to-cyan-500' : 'gradient-bg'
                 }`}
               >
                 {loadingId === plan.id && <Loader2 className="w-4 h-4 animate-spin" />}
-                Get Started
+                {loadingId === plan.id ? 'Opening App Store…' : 'Get Started'}
               </button>
             </div>
           ))}

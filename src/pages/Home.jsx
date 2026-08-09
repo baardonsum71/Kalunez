@@ -109,7 +109,7 @@ export default function Home() {
               <span className="gradient-text">NEVER CLOSES</span>
             </h1>
             <p className="text-base md:text-lg text-white/75 max-w-md mb-8 font-medium">
-              Stream sets, tip the booth, go live — built for nights that refuse to end.
+              Stream sets, buy tickets, go live — built for nights that refuse to end.
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <Link
@@ -135,7 +135,7 @@ export default function Home() {
               <span className="font-display text-sm tracking-[0.2em] text-[var(--lime)] mb-3 block">FOR ARTISTS</span>
               <h2 className="font-display text-4xl md:text-5xl text-white mb-3 leading-none">PLAY THE ROOM. GET PAID.</h2>
               <p className="text-white/70 mb-6 text-sm md:text-base">
-                Upload originals, schedule ticketed nights, tip jar on — your set, your audience, your cut.
+                Upload originals, schedule ticketed nights — your set, your audience, your cut.
               </p>
               <div className="flex gap-3 flex-wrap">
                 <Link to="/for-artists" className="gradient-bg px-5 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 transition-opacity">

@@ -50,7 +50,14 @@ export default function ConnectOnboarding({ user, onUpdate }) {
     try {
       const result = await getArtistAccount('dashboard');
       const url = result?.url || result?.data?.url;
-      if (url) window.open(url, '_blank');
+      if (!url) return;
+      const { Capacitor } = await import('@capacitor/core');
+      if (Capacitor.isNativePlatform()) {
+        const { Browser } = await import('@capacitor/browser');
+        await Browser.open({ url });
+      } else {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
     } catch (err) {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
     }
@@ -72,9 +79,9 @@ export default function ConnectOnboarding({ user, onUpdate }) {
       <div className="flex items-start gap-3 mb-4">
         <Wallet className="w-6 h-6 text-yellow-400 shrink-0 mt-0.5" />
         <div>
-          <h2 className="text-white font-bold text-lg">Receive Tips & Payouts</h2>
+          <h2 className="text-white font-bold text-lg">Receive Payouts</h2>
           <p className="text-muted-foreground text-sm mt-1">
-            Set up a payout account to receive tips from fans. Kalunez takes a 10% platform fee; the rest is paid out to you.
+            Set up a payout account to receive ticket earnings. Kalunez takes a 10% platform fee; the rest is paid out to you.
           </p>
         </div>
       </div>
@@ -83,7 +90,7 @@ export default function ConnectOnboarding({ user, onUpdate }) {
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-green-400 text-sm">
             <CheckCircle2 className="w-4 h-4" />
-            Payouts active — you can receive tips as <span className="font-semibold text-white">{account.artist_name}</span>
+            Payouts active — earnings go to <span className="font-semibold text-white">{account.artist_name}</span>
           </div>
           <button
             type="button"

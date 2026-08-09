@@ -4,8 +4,6 @@ import {
   getConfiguredPlans,
   getPlanById,
   formatCents,
-  TIP_AMOUNTS,
-  tipProductId,
   TICKET_PRICES,
   getTicketPriceById,
   formatTicketPrice,
@@ -35,12 +33,6 @@ describe('revenuecat config', () => {
   it('formatCents formats USD currency', () => {
     expect(formatCents(999)).toBe('$9.99');
     expect(formatCents(0)).toBe('$0.00');
-  });
-
-  it('TIP_AMOUNTS includes expected values', () => {
-    expect(TIP_AMOUNTS).toEqual([1, 5, 10, 20, 50, 100]);
-    expect(tipProductId(1)).toBe('kalunez_tip_1');
-    expect(tipProductId(100)).toBe('kalunez_tip_100');
   });
 
   it('TICKET_PRICES defines the five fixed ticket tiers', () => {

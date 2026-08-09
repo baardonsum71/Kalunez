@@ -80,13 +80,6 @@ export const SUBSCRIPTION_PLANS = [
   },
 ];
 
-export const TIP_AMOUNTS = [1, 5, 10, 20, 50, 100];
-
-/** App Store Product IDs for tips (old tip_credit_* IDs were burned / not reusable). */
-export function tipProductId(amountUsd) {
-  return `kalunez_tip_${amountUsd}`;
-}
-
 /**
  * Fixed ticket price points for Apple IAP / RevenueCat consumables.
  * Add matching consumables in RevenueCat / App Store Connect.
@@ -125,10 +118,44 @@ export function nearestTicketTier(priceCents) {
 const IS_NATIVE = Capacitor.isNativePlatform();
 
 let purchasesRef = null;
+let configuredUserId = null;
 
 // Public Web Billing SDK key — safe in the client. Used as fallback when
 // Vercel env is missing/misnamed (dashboard env has failed to inject repeatedly).
 const WEB_BILLING_PUBLIC_KEY_FALLBACK = 'rcb_TdRZaSXDttTeYETrokkCKpvLqdYQ';
+
+function withTimeout(promise, ms, message) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(message)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
+export function isPurchaseCancelled(err) {
+  if (!err) return false;
+  const code = err.code ?? err.errorCode ?? err.userInfo?.readableErrorCode;
+  const msg = String(err.message || err || '').toLowerCase();
+  return (
+    code === 1
+    || code === '1'
+    || code === 'PURCHASE_CANCELLED'
+    || err.userCancelled === true
+    || msg.includes('cancelled')
+    || msg.includes('canceled')
+  );
+}
+
+function formatPurchaseError(err) {
+  if (isPurchaseCancelled(err)) {
+    return 'Purchase canceled.';
+  }
+  const msg = err?.message || String(err || 'Checkout failed');
+  if (/not available|could not be found|no products|offering/i.test(msg)) {
+    return `${msg} Make sure the Paid Apps Agreement is active and the product is Cleared for Sale.`;
+  }
+  return msg;
+}
 
 function getPublicKey() {
   if (!IS_NATIVE) {
@@ -147,35 +174,80 @@ function getMissingKeyVarName() {
   return 'VITE_REVENUECAT_IOS_PUBLIC_KEY';
 }
 
+function packageStoreProduct(pkg) {
+  return pkg?.product || pkg?.storeProduct || null;
+}
+
 async function getPurchases() {
   const key = getPublicKey();
   if (!key) {
     throw new Error(`RevenueCat is not configured. Add ${getMissingKeyVarName()} to .env.local — see docs/REVENUECAT_SETUP.md`);
   }
 
-  if (purchasesRef) return purchasesRef;
-
-  const { data } = await supabase.auth.getUser();
+  const { data } = await withTimeout(
+    supabase.auth.getUser(),
+    12000,
+    'Sign-in check timed out. Close the app, sign in again, then retry purchase.'
+  );
   const appUserId = data?.user?.id;
   if (!appUserId) throw new Error('You must be signed in to do this.');
 
   if (IS_NATIVE) {
     const { Purchases } = await import('@revenuecat/purchases-capacitor');
-    await Purchases.configure({ apiKey: key, appUserID: appUserId });
-    purchasesRef = Purchases;
-  } else {
+    if (!purchasesRef) {
+      await withTimeout(
+        Purchases.configure({ apiKey: key, appUserID: appUserId }),
+        12000,
+        'Store setup timed out. Check your network and try again.'
+      );
+      purchasesRef = Purchases;
+      configuredUserId = appUserId;
+    } else if (configuredUserId !== appUserId) {
+      try {
+        await withTimeout(
+          Purchases.logIn({ appUserID: appUserId }),
+          12000,
+          'Store login timed out. Try again.'
+        );
+        configuredUserId = appUserId;
+      } catch {
+        // Continue with existing session if logIn is unavailable.
+      }
+    }
+    return purchasesRef;
+  }
+
+  if (!purchasesRef || configuredUserId !== appUserId) {
     const { Purchases } = await import('@revenuecat/purchases-js');
     purchasesRef = Purchases.configure(key, appUserId);
+    configuredUserId = appUserId;
   }
 
   return purchasesRef;
 }
 
+function packageMatches(pkg, identifier) {
+  if (!pkg || !identifier) return false;
+  const productId =
+    packageStoreProduct(pkg)?.identifier
+    || pkg.productIdentifier;
+  return pkg.identifier === identifier || productId === identifier;
+}
+
 function findPackage(offerings, identifier) {
-  return (
-    offerings.current?.availablePackages.find((p) => p.identifier === identifier)
-    ?? offerings.all?.[identifier]?.availablePackages?.[0]
-  );
+  if (!offerings || !identifier) return null;
+
+  const fromCurrent = offerings.current?.availablePackages?.find((p) => packageMatches(p, identifier));
+  if (fromCurrent) return fromCurrent;
+
+  const named = offerings.all?.[identifier]?.availablePackages?.[0];
+  if (named) return named;
+
+  for (const offering of Object.values(offerings.all || {})) {
+    const match = offering?.availablePackages?.find((p) => packageMatches(p, identifier));
+    if (match) return match;
+  }
+  return null;
 }
 
 async function purchasePackage(purchases, rcPackage) {
@@ -183,6 +255,81 @@ async function purchasePackage(purchases, rcPackage) {
     await purchases.purchasePackage({ aPackage: rcPackage });
   } else {
     await purchases.purchase({ rcPackage });
+  }
+}
+
+/** Native fallback when Offering package identifiers don't match App Store product IDs. */
+async function purchaseNativeStoreProduct(purchases, productId) {
+  const { products } = await withTimeout(
+    purchases.getProducts({ productIdentifiers: [productId] }),
+    12000,
+    `Could not load App Store product "${productId}" (timed out).`
+  );
+  const product = products?.[0];
+  if (!product) {
+    throw new Error(
+      `App Store product "${productId}" is not available. Confirm it is Cleared for Sale, linked in RevenueCat to the iOS app, and the Paid Apps Agreement is active.`
+    );
+  }
+  await purchases.purchaseStoreProduct({ product });
+}
+
+async function purchaseByIdentifier(purchases, productId) {
+  const offerings = await withTimeout(
+    purchases.getOfferings(),
+    12000,
+    'Could not load App Store products (timed out). Try again on a good network connection.'
+  );
+  const rcPackage = findPackage(offerings, productId);
+  const storeProduct = packageStoreProduct(rcPackage);
+
+  // Only purchase via package when StoreKit actually attached a real product.
+  // Empty/missing product objects are a common misconfig and used to spin forever.
+  if (rcPackage && storeProduct?.identifier) {
+    await withTimeout(
+      purchasePackage(purchases, rcPackage),
+      20000,
+      'App Store payment sheet did not appear. Account Holder must accept Paid Apps Agreement (Business) and products must be Cleared for Sale.'
+    );
+    return;
+  }
+
+  if (IS_NATIVE) {
+    await withTimeout(
+      purchaseNativeStoreProduct(purchases, productId),
+      20000,
+      'App Store payment sheet did not appear. Account Holder must accept Paid Apps Agreement (Business) and products must be Cleared for Sale.'
+    );
+    return;
+  }
+
+  throw new Error(
+    `Product "${productId}" is not available from the store. Link it in RevenueCat Offerings and confirm Cleared for Sale.`
+  );
+}
+
+/** Returns product IDs that are currently purchasable from the store (for UI preflight). */
+export async function getAvailableStoreProductIds(productIds) {
+  const ids = (productIds || []).filter(Boolean);
+  if (!ids.length || !getPublicKey()) return [];
+
+  try {
+    const purchases = await getPurchases();
+    if (IS_NATIVE) {
+      const { products } = await withTimeout(
+        purchases.getProducts({ productIdentifiers: ids }),
+        12000,
+        'Product check timed out'
+      );
+      return (products || []).map((p) => p.identifier).filter(Boolean);
+    }
+    const offerings = await withTimeout(purchases.getOfferings(), 12000, 'Product check timed out');
+    return ids.filter((id) => {
+      const pkg = findPackage(offerings, id);
+      return Boolean(packageStoreProduct(pkg)?.identifier || pkg);
+    });
+  } catch {
+    return [];
   }
 }
 
@@ -204,18 +351,22 @@ export async function purchasePlan(planId) {
   const plan = getPlanById(planId);
   if (!plan) throw new Error(`Unknown plan "${planId}"`);
 
-  const { AnalyticsEvents } = await import('@/lib/analytics');
-  AnalyticsEvents.subscriptionCheckout(planId, plan.id);
-
-  const purchases = await getPurchases();
-  const offerings = await purchases.getOfferings();
-  const rcPackage = findPackage(offerings, planId);
-
-  if (!rcPackage) {
-    throw new Error(`RevenueCat package "${planId}" not found. Check your Offering configuration.`);
+  try {
+    const { AnalyticsEvents } = await import('@/lib/analytics');
+    AnalyticsEvents.subscriptionCheckout(planId, plan.id);
+  } catch {
+    // Analytics must never block checkout.
   }
 
-  await purchasePackage(purchases, rcPackage);
+  try {
+    const purchases = await getPurchases();
+    await purchaseByIdentifier(purchases, planId);
+  } catch (err) {
+    const wrapped = new Error(formatPurchaseError(err));
+    wrapped.cause = err;
+    wrapped.userCancelled = isPurchaseCancelled(err);
+    throw wrapped;
+  }
 }
 
 export async function getCustomerInfo() {
@@ -251,21 +402,6 @@ export async function openSubscriptionManagement() {
   }
 }
 
-export async function purchaseTip(artistName, amountUsd) {
-  const purchases = await getPurchases();
-  await purchases.setAttributes({ artistName });
-
-  const offerings = await purchases.getOfferings();
-  const productId = tipProductId(amountUsd);
-  const rcPackage = findPackage(offerings, productId);
-
-  if (!rcPackage) {
-    throw new Error(`RevenueCat tip product "${productId}" not found. Configure it in RevenueCat (see docs/REVENUECAT_SETUP.md).`);
-  }
-
-  await purchasePackage(purchases, rcPackage);
-}
-
 /**
  * Purchase a ticket for a paid live event. Creates a `tickets` row after
  * a successful RevenueCat consumable purchase. Product IDs must match
@@ -284,18 +420,21 @@ export async function purchaseEventTicket(eventId, ticketProductId, amountCents)
   const email = authData?.user?.email;
   if (!email) throw new Error('You must be signed in to buy a ticket.');
 
-  const purchases = await getPurchases();
-  await purchases.setAttributes({ eventId: String(eventId) });
+  try {
+    const purchases = await getPurchases();
+    try {
+      await purchases.setAttributes({ eventId: String(eventId) });
+    } catch {
+      // Attributes are optional — never block StoreKit purchase.
+    }
 
-  const offerings = await purchases.getOfferings();
-  const rcPackage = findPackage(offerings, productId);
-  if (!rcPackage) {
-    throw new Error(
-      `RevenueCat ticket product "${productId}" not found. Add matching consumables in RevenueCat — see docs/REVENUECAT_SETUP.md.`
-    );
+    await purchaseByIdentifier(purchases, productId);
+  } catch (err) {
+    const wrapped = new Error(formatPurchaseError(err));
+    wrapped.cause = err;
+    wrapped.userCancelled = isPurchaseCancelled(err);
+    throw wrapped;
   }
-
-  await purchasePackage(purchases, rcPackage);
 
   const { data: existing } = await supabase
     .from('tickets')

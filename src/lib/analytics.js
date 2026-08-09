@@ -1,4 +1,5 @@
 import posthog from 'posthog-js';
+import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/api/supabaseClient';
 import { createRow } from '@/lib/db';
 import { hasAnalyticsConsent } from '@/lib/cookieConsent';
@@ -9,7 +10,6 @@ const KEY_EVENTS = new Set([
   'track_uploaded',
   'stream_started',
   'stream_viewed',
-  'tip_initiated',
   'subscription_checkout',
   'follow_artist',
   'artist_profile_viewed',
@@ -40,6 +40,8 @@ function getSessionId() {
 
 export function initAnalytics() {
   if (initialized || typeof window === 'undefined') return;
+  // No third-party analytics cookies in the native shell without ATT.
+  if (Capacitor.isNativePlatform()) return;
 
   const key = import.meta.env.VITE_POSTHOG_KEY;
   if (!key) return;
@@ -153,12 +155,6 @@ export const AnalyticsEvents = {
     entity_id: stream.id,
     stream_title: stream.title,
     artist: stream.artist,
-  }),
-
-  tipInitiated: (artistName, amount) => track('tip_initiated', {
-    entity_type: 'artist',
-    artist: artistName,
-    value: amount * 100,
   }),
 
   subscriptionCheckout: (planId, priceId) => track('subscription_checkout', {

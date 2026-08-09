@@ -8,7 +8,7 @@ export default function Footer() {
           <div>
             <span className="font-display text-3xl tracking-wide logo-gradient-text">KALUNEZ</span>
             <p className="text-muted-foreground text-sm mt-2 max-w-xs">
-              Live sets, tips, and ticketed nights — the stream that feels like the club.
+              Live sets and ticketed nights — the stream that feels like the club.
             </p>
           </div>
 

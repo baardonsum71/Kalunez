@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
 import { useAuth } from '@/lib/AuthContext';
 
 function AppleLogo() {
@@ -15,6 +16,8 @@ export default function Login() {
   const [searchParams] = useSearchParams();
   const redirect = searchParams.get('redirect') || '/';
   const { signInWithPassword, signUpWithPassword, signInWithApple, sendPasswordReset } = useAuth();
+  // OAuth Apple opens the system browser — Apple Guideline 4. Use email/password in the native shell.
+  const isNative = Capacitor.isNativePlatform();
 
   const [mode, setMode] = useState('signin'); // 'signin' | 'signup' | 'reset'
   const [email, setEmail] = useState('');
@@ -71,20 +74,24 @@ export default function Login() {
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-          <button
-            type="button"
-            onClick={handleApple}
-            className="w-full flex items-center justify-center gap-2 bg-white text-black font-semibold py-2.5 rounded-xl hover:opacity-90 transition-opacity"
-          >
-            <AppleLogo />
-            Sign in with Apple
-          </button>
+          {!isNative && (
+            <>
+              <button
+                type="button"
+                onClick={handleApple}
+                className="w-full flex items-center justify-center gap-2 bg-white text-black font-semibold py-2.5 rounded-xl hover:opacity-90 transition-opacity"
+              >
+                <AppleLogo />
+                Sign in with Apple
+              </button>
 
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-border" />
-            <span className="text-xs text-muted-foreground">or</span>
-            <div className="flex-1 h-px bg-border" />
-          </div>
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-xs text-muted-foreground">or</span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+            </>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-3">
             {mode === 'signup' && (
@@ -121,7 +128,7 @@ export default function Login() {
                   </button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Listeners stream and tip. Artists can also upload, go live, and earn. You can change this later in Settings.
+                  Listeners stream music and live. Artists can also upload, go live, and sell tickets. You can change this later in Settings.
                 </p>
               </>
             )}
@@ -131,6 +138,7 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              autoComplete="email"
               className="w-full bg-secondary/50 border border-border text-foreground text-sm px-3 py-2.5 rounded-lg focus:outline-none focus:border-purple-500"
             />
             {mode !== 'reset' && (
@@ -141,6 +149,7 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={8}
+                autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                 className="w-full bg-secondary/50 border border-border text-foreground text-sm px-3 py-2.5 rounded-lg focus:outline-none focus:border-purple-500"
               />
             )}

@@ -4,7 +4,6 @@ import { Radio, Video, Mic, MicOff, VideoOff, StopCircle, Camera, Copy, Check, M
 import { createRow, updateRow, filterRows } from '@/lib/db';
 import { useAuth } from '@/lib/AuthContext';
 import LiveListeningRoom from '@/components/LiveListeningRoom';
-import TipButton from '@/components/TipButton';
 import MobileSelect from '@/components/MobileSelect';
 import ShareButton from '@/components/ShareButton';
 import { useLiveKitPublisher } from '@/hooks/useLiveKit';
@@ -451,7 +450,6 @@ export default function GoLive() {
               </div>
               <div className="flex gap-2 shrink-0">
                 <ShareButton title={form.title} url={streamUrl} text={`Watch "${form.title}" by ${form.artist} live on Kalunez!`} />
-                <TipButton artistName={form.artist} />
               </div>
             </div>
 

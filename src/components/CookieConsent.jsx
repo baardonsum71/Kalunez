@@ -6,6 +6,7 @@ import {
   CONSENT_ESSENTIAL,
   getCookieConsent,
   hasConsentChoice,
+  isNativeApp,
   setCookieConsent,
 } from '@/lib/cookieConsent';
 import { applyConsentToServices } from '@/lib/applyConsent';
@@ -14,6 +15,13 @@ export default function CookieConsent() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    // Native iOS/Android: no cookie/tracking banner (Apple Guideline 5.1.2).
+    if (isNativeApp()) {
+      setCookieConsent(CONSENT_ESSENTIAL);
+      applyConsentToServices(CONSENT_ESSENTIAL);
+      setVisible(false);
+      return;
+    }
     if (!hasConsentChoice()) {
       setVisible(true);
       return;
@@ -83,6 +91,22 @@ export function CookieConsentSettings() {
     window.addEventListener('kalunez:cookie-consent', sync);
     return () => window.removeEventListener('kalunez:cookie-consent', sync);
   }, []);
+
+  if (isNativeApp()) {
+    return (
+      <div className="py-2 border-b border-border">
+        <div className="flex items-center justify-between gap-3 mb-1">
+          <span className="flex items-center gap-2 text-white text-sm">
+            <Cookie className="w-4 h-4 text-amber-400" /> Cookie preferences
+          </span>
+          <Link to="/cookies" className="text-xs text-purple-400 hover:underline">Learn more</Link>
+        </div>
+        <p className="text-muted-foreground text-xs">
+          This app uses only essential cookies. Optional analytics are not enabled on iOS/Android.
+        </p>
+      </div>
+    );
+  }
 
   const update = (value) => {
     setCookieConsent(value);

@@ -18,7 +18,7 @@ export default {
     title: 'Settings',
     subtitle: 'Manage your account preferences',
     profile: 'Your profile',
-    profileHint: 'Everyone gets a profile. Choose Listener (stream & tip) or Artist (also upload & go live).',
+    profileHint: 'Everyone gets a profile. Choose Listener (stream) or Artist (also upload & go live).',
     photo: 'Profile photo',
     changePhoto: 'Change photo',
     uploadPhoto: 'Upload photo',

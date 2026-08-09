@@ -89,7 +89,7 @@ export default function Analytics() {
           <StatCard icon={Music} label="Total Tracks" value={overview?.totalTracks ?? 0} color="text-pink-400" sub={`${overview?.totalArtists ?? 0} artists`} />
           <StatCard icon={Play} label="Total Plays" value={overview?.totalPlays?.toLocaleString() ?? 0} color="text-green-400" />
           <StatCard icon={Radio} label="Live Now" value={overview?.liveStreamsNow ?? 0} color="text-red-400" sub={`${overview?.totalStreams ?? 0} total`} />
-          <StatCard icon={DollarSign} label="Tip Revenue" value={formatAnalyticsCurrency(overview?.tipRevenueCents)} color="text-yellow-400" sub={`${overview?.totalTips ?? 0} tips`} />
+          <StatCard icon={DollarSign} label="Ticket / payout revenue" value={formatAnalyticsCurrency(overview?.tipRevenueCents)} color="text-yellow-400" sub="historical earnings" />
           <StatCard icon={Crown} label="Subscriptions" value={overview?.activeSubscriptions ?? 0} color="text-yellow-400" sub="active" />
         </div>
 

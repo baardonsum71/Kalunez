@@ -1,4 +1,4 @@
--- Ticketed / scheduled live events (extends live_streams)
+- Ticketed / scheduled live events (extends live_streams)
 -- Free Go Live continues to create is_live=true streams with status='live'.
 -- Create Event creates status='scheduled' rows; optional is_paid + price_cents.
 
@@ -12,7 +12,7 @@ alter table live_streams
 
 -- Backfill existing rows
 update live_streams
-set status = case when is_live then 'live' else 'ended' end
+set sta-tus = case when is_live then 'live' else 'ended' end
 where status = 'live' and is_live = false;
 
 create index if not exists idx_live_streams_status on live_streams(status);

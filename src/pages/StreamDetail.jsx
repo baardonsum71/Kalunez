@@ -8,7 +8,6 @@ import LiveListeningRoom from '@/components/LiveListeningRoom';
 import LiveKitViewer from '@/components/LiveKitViewer';
 import MuxStreamPlayer from '@/components/MuxStreamPlayer';
 import ShareButton from '@/components/ShareButton';
-import TipButton from '@/components/TipButton';
 import GetTicketButton, { TicketLockedOverlay } from '@/components/GetTicketButton';
 import { getLiveKitRoomInfo } from '@/lib/streaming';
 import { AnalyticsEvents } from '@/lib/analytics';
@@ -242,7 +241,6 @@ export default function StreamDetail() {
 
             <div className="flex flex-wrap gap-2 mt-4">
               <ShareButton title={stream.title} url={`${window.location.origin}/stream/${stream.id}`} />
-              {canWatch && <TipButton artistName={stream.artist} />}
               {stream.is_paid && !canWatch && <GetTicketButton event={stream} />}
               {isOwner && isScheduled && (
                 <Link

@@ -3,9 +3,9 @@ import { Upload, Radio, TrendingUp, Globe, Shield, Zap, DollarSign, Tv2 } from '
 
 const features = [
   { icon: Tv2, title: 'Go Live', desc: 'Hit the booth from your browser — or pipe OBS via RTMP when you want the full rig.' },
-  { icon: DollarSign, title: 'Tips & tickets', desc: 'Earn from the floor: tips mid-set, optional ticketed nights, subscriptions.' },
+  { icon: DollarSign, title: 'Tickets & subscriptions', desc: 'Earn from the floor: optional ticketed nights and subscriptions.' },
   { icon: Globe, title: 'Global floor', desc: 'Your set reaches listeners who could never fit in the room — same energy, wider reach.' },
-  { icon: TrendingUp, title: 'Read the room', desc: 'Plays, tips, and audience signals so you know what hits.' },
+  { icon: TrendingUp, title: 'Read the room', desc: 'Plays and audience signals so you know what hits.' },
   { icon: Shield, title: 'Your masters', desc: 'Upload originals you own. You keep the rights — we host and stream.' },
   { icon: Zap, title: 'Drop fast', desc: 'Upload and publish in minutes. No label queue. No waiting for a green light.' },
 ];
@@ -35,7 +35,7 @@ export default function ForArtists() {
             <span className="gradient-text">MAIN ROOM</span>
           </h1>
           <p className="text-white/75 max-w-md mb-8 text-base md:text-lg">
-            Upload. Go live. Collect tips. Ticket the night. Built for DJs and artists who run the floor.
+            Upload. Go live. Ticket the night. Built for DJs and artists who run the floor.
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
             <Link

@@ -27,12 +27,6 @@ export default function ArtistDashboard() {
     enabled: !!user,
   });
 
-  const { data: tips = [] } = useQuery({
-    queryKey: ['my-tips', user?.email],
-    queryFn: () => filterRows('tips', { artist_email: user.email, status: 'completed' }, '-created_date', 20),
-    enabled: !!user,
-  });
-
   const { mutate: deleteTrack } = useMutation({
     mutationFn: (id) => deleteRow('tracks', id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['my-tracks'] }),
@@ -48,8 +42,7 @@ export default function ArtistDashboard() {
 
   const totalPlays = tracks.reduce((s, t) => s + (t.plays || 0), 0);
   const totalStreams = streams.length;
-  const tipEarnings = artistAccount?.total_earnings_cents
-    ?? tips.reduce((s, t) => s + (t.amount_cents - (t.platform_fee_cents || 0)), 0);
+  const earnings = formatCents(artistAccount?.total_earnings_cents || 0);
 
   const startEdit = (track) => {
     setEditingId(track.id);
@@ -97,7 +90,7 @@ export default function ArtistDashboard() {
             { icon: Music, label: 'Uploads', value: tracks.length, color: 'text-purple-400' },
             { icon: Play, label: 'Total Plays', value: totalPlays.toLocaleString(), color: 'text-cyan-400' },
             { icon: Radio, label: 'Live Streams', value: totalStreams, color: 'text-pink-400' },
-            { icon: DollarSign, label: 'Tip Earnings', value: formatCents(tipEarnings), color: 'text-yellow-400' },
+            { icon: DollarSign, label: 'Earnings', value: earnings, color: 'text-yellow-400' },
           ].map(({ icon: Icon, label, value, color }) => (
             <div key={label} className="bg-gradient-to-br from-cyan-900/30 to-teal-900/20 border border-cyan-500/20 rounded-xl p-4 text-center">
               <Icon className={`w-6 h-6 mx-auto mb-2 ${color}`} />
@@ -106,27 +99,6 @@ export default function ArtistDashboard() {
             </div>
           ))}
         </div>
-
-        {tips.length > 0 && (
-          <div className="bg-card border border-border rounded-2xl overflow-hidden mb-10">
-            <div className="px-6 py-4 border-b border-border">
-              <h2 className="text-white font-bold text-lg">Recent Tips</h2>
-            </div>
-            <div className="divide-y divide-border">
-              {tips.slice(0, 5).map(tip => (
-                <div key={tip.id} className="px-6 py-3 flex items-center justify-between">
-                  <div>
-                    <p className="text-white text-sm font-medium">{formatCents(tip.amount_cents - (tip.platform_fee_cents || 0))}</p>
-                    <p className="text-muted-foreground text-xs">from {tip.tipper_email?.split('@')[0] || 'fan'}</p>
-                  </div>
-                  <span className="text-muted-foreground text-xs">
-                    {new Date(tip.created_date).toLocaleDateString()}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         <div className="bg-gradient-to-br from-cyan-900/20 to-teal-900/10 border border-cyan-500/20 rounded-2xl overflow-hidden">
           <div className="px-6 py-4 border-b border-border flex items-center justify-between">

@@ -18,7 +18,7 @@ export default {
     title: 'Innstillinger',
     subtitle: 'Administrer kontoen din',
     profile: 'Profilen din',
-    profileHint: 'Alle får en profil. Velg Lytter (strøm og tips) eller Artist (også last opp og gå live).',
+    profileHint: 'Alle får en profil. Velg Lytter (strøm) eller Artist (også last opp og gå live).',
     photo: 'Profilbilde',
     changePhoto: 'Bytt bilde',
     uploadPhoto: 'Last opp bilde',

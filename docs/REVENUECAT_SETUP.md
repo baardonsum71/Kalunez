@@ -1,6 +1,6 @@
 # RevenueCat Setup — Kalunez
 
-RevenueCat replaces Stripe Checkout for anything the buyer pays for directly (subscriptions and tips). Stripe is still used server-side, but only to pay artists out — see `docs/PAYMENTS.md`.
+RevenueCat replaces Stripe Checkout for anything the buyer pays for directly (subscriptions and event tickets). Stripe is still used server-side, but only to pay artists out — see `docs/PAYMENTS.md`.
 
 ## 1. Create account & project
 
@@ -17,14 +17,12 @@ RevenueCat replaces Stripe Checkout for anything the buyer pays for directly (su
 
 ## 3. Create Products
 
-For each plan in `src/lib/revenuecat.js` (`pro_monthly_subscription`, `premium_monthly_subscription`, `premium_podcast_monthly`, `premium_yearly`, `premium_podcast_yearly`), plus consumables:
+For each plan in `src/lib/revenuecat.js` (`pro_monthly_subscription`, `premium_monthly_subscription`, `premium_podcast_monthly`, `premium_yearly`, `premium_podcast_yearly`), plus ticket consumables:
 
-- Tips: `kalunez_tip_1`, `kalunez_tip_5`, `kalunez_tip_10`, `kalunez_tip_20`, `kalunez_tip_50`, `kalunez_tip_100`
-  (do not reuse burned `tip_credit_*` IDs — Apple blocks them)
 - Event tickets (consumables, fixed prices):
   `event_ticket_49`, `_99`, `_149`, `_199`, `_299`
 
-**Project → Products → +** — attach each subscription product to its matching entitlement. Tip and ticket products are **consumables**, not attached to an entitlement. Add all packages to the default Offering with identifiers matching the product IDs exactly.
+**Project → Products → +** — attach each subscription product to its matching entitlement. Ticket products are **consumables**, not attached to an entitlement. Add all packages to the default Offering with identifiers matching the product IDs exactly.
 
 ## 4. Create an Offering
 

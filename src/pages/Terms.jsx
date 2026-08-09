@@ -48,17 +48,17 @@ const sections = [
           <li>Create playlists, follow artists, and interact with community features.</li>
           <li>Upload tracks and metadata as an artist or rights holder.</li>
           <li>Broadcast live streams and participate in live chat.</li>
-          <li>Subscribe to paid plans, send tips, and receive payouts through our payment partners.</li>
+          <li>Subscribe to paid plans, buy event tickets, and receive payouts through our payment partners.</li>
         </ul>
         <p className="mt-2">Features may change, be added, or be discontinued. We strive for high availability but do not guarantee uninterrupted access.</p>
       </>
     ),
   },
   {
-    title: '5. Subscriptions, tips, and payments',
+    title: '5. Subscriptions, tickets, and payments',
     content: (
       <ul className="list-disc pl-5 space-y-1">
-        <li>Paid subscriptions and tips are processed by third-party payment providers (e.g., RevenueCat, Stripe). Their terms also apply to payment transactions.</li>
+        <li>Paid subscriptions and event tickets are processed by third-party payment providers (e.g., RevenueCat, Stripe). Their terms also apply to payment transactions.</li>
         <li>Subscription fees, billing cycles, and cancellation terms are shown at checkout and on our <Link to="/pricing" className="text-purple-400 hover:underline">Pricing</Link> page.</li>
         <li>Unless required by law, fees are non-refundable once a billing period has started. You may cancel renewal at any time through your account settings.</li>
         <li>Artist payouts and Connect onboarding are subject to eligibility, verification, and the payment partner's policies.</li>

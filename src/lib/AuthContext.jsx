@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/api/supabaseClient';
 
 const AuthContext = createContext();
@@ -125,6 +126,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signInWithApple = async (redirectTo) => {
+    // OAuth opens the system browser — blocked on native (Apple Guideline 4).
+    if (Capacitor.isNativePlatform()) {
+      throw new Error('Use email and password to sign in inside the app.');
+    }
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'apple',
       options: { redirectTo: redirectTo || window.location.origin },
@@ -150,6 +155,7 @@ export const AuthProvider = ({ children }) => {
 
   const navigateToLogin = (returnUrl) => {
     const redirect = returnUrl || window.location.pathname + window.location.search;
+    // Stay inside the Capacitor WebView (relative path) — do not open an external browser.
     window.location.assign(`/login?redirect=${encodeURIComponent(redirect)}`);
   };
 

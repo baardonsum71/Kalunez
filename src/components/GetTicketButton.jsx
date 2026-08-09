@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Loader2, Lock, Ticket } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
-import { purchaseEventTicket, formatTicketPrice } from '@/lib/revenuecat';
+import { purchaseEventTicket, formatTicketPrice, isPurchaseCancelled } from '@/lib/revenuecat';
 import { toast } from '@/components/ui/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -26,7 +26,11 @@ export default function GetTicketButton({ event, onPurchased }) {
       toast({ title: "You're in!", description: 'Ticket purchased. Join when the concert starts.' });
       onPurchased?.();
     } catch (err) {
-      toast({ title: 'Purchase failed', description: err.message || 'Could not buy ticket', variant: 'destructive' });
+      if (isPurchaseCancelled(err) || err?.userCancelled) {
+        toast({ title: 'Purchase canceled' });
+      } else {
+        toast({ title: 'Purchase failed', description: err.message || 'Could not buy ticket', variant: 'destructive' });
+      }
     } finally {
       setLoading(false);
     }
@@ -51,7 +55,7 @@ export function TicketLockedOverlay({ event }) {
       <Lock className="w-12 h-12 text-yellow-400/80" />
       <p className="text-white font-semibold text-lg">Ticket required</p>
       <p className="text-muted-foreground text-sm max-w-sm">
-        Buy a ticket to unlock this concert when it goes live. Tips still work after you join.
+        Buy a ticket to unlock this concert when it goes live.
       </p>
       <GetTicketButton event={event} />
     </div>
