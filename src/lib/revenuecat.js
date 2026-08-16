@@ -151,8 +151,14 @@ function formatPurchaseError(err) {
     return 'Purchase canceled.';
   }
   const msg = err?.message || String(err || 'Checkout failed');
+  if (/timed out|did not appear/i.test(msg)) {
+    return msg;
+  }
   if (/not available|could not be found|no products|offering/i.test(msg)) {
     return `${msg} Make sure the Paid Apps Agreement is active and the product is Cleared for Sale.`;
+  }
+  if (/network|offline|internet|connection/i.test(msg)) {
+    return `${msg} Check your network connection and try again.`;
   }
   return msg;
 }
