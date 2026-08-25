@@ -168,10 +168,11 @@ export default function Layout() {
         )}
       </nav>
 
-      <main className="pt-14 pb-20 md:pb-0 overscroll-none">
+      <main className="pt-14 pb-20 md:pb-0 overscroll-none w-full min-h-[calc(100dvh-3.5rem)]">
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
+            className="w-full"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}

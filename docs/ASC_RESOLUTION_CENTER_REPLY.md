@@ -1,35 +1,38 @@
-# App Store Connect — Resolution Center reply
+# App Store Connect — Resolution Center reply (build 16+)
 
-Paste this (or adapt) when replying to the rejection for Guidelines **4.2** and **2.1(b)**.
+Paste when replying to Guidelines **4**, **2.1(b)**, and **2.3.3**.
 
 ---
 
 Hello App Review Team,
 
-Thank you for the feedback. We have addressed both issues in this build.
+Thank you for the feedback. We have addressed the issues in this build as follows.
 
-### Guideline 2.1(b) — In-App Purchase / Get Started / Subscribe Now
+### Guideline 4 — Design / screen sizes
 
-We fixed the subscription purchase flow so Subscribe Now / Get Started can no longer load indefinitely:
+This build is configured for **iPhone only** (device family iPhone). We removed iPad as a target so the UI is no longer shown as an unoptimized iPad experience. Portrait orientation is supported on iPhone. Please review on iPhone.
 
-- Native StoreKit purchases via RevenueCat with hard timeouts and clear on-screen errors if products are unavailable or the payment sheet does not appear.
-- Preflight check of App Store products on the Pro and Pricing screens.
-- Please test with the provided sandbox account: sign in → Upgrade to Pro → Subscribe Now (or Pricing → Get Started). The App Store payment sheet should appear.
+### Guideline 2.1(b) — In-App Purchase / Subscribe
 
-### Guideline 4.2 — Minimum Functionality / native experience
+We fixed the subscription flow so Subscribe / Get Started cannot spin indefinitely:
 
-Kalunez is a music and live streaming app (not a generic website wrapper). This build adds and surfaces native iOS functionality reviewers can verify:
+- Native StoreKit purchases via RevenueCat with hard timeouts and clear on-screen errors.
+- Product preflight on Pricing and Upgrade to Pro.
+- Please test with the sandbox account below on **iPhone**.
 
-- Background audio playback (`UIBackgroundModes` audio) so listening continues when the device is locked
-- Lock screen / Control Center Now Playing controls via Media Session (play, pause, seek)
-- Native system share sheet (Capacitor Share) for tracks and live streams
-- Haptic feedback on playback and successful purchases
-- Camera and microphone for Go Live broadcasts
-- StoreKit In-App Purchases for subscriptions and event tickets
+**Sandbox account:** review@kalunez.app (password in App Review Information)
 
-We believe this provides a robust native user experience beyond a simple web browsing shell.
+**Steps to purchase:**
+1. Sign in with the review account.
+2. Open **Pricing** (or Upgrade to Pro).
+3. Tap **Get Started** on **Premium Monthly** (`premium_monthly_subscription`) — or Subscribe Now on Pro Monthly.
+4. The App Store payment sheet should appear within a few seconds.
 
-Please let us know if you need any additional information.
+### Guideline 2.3.3 — Screenshots / metadata
+
+We uploaded new screenshots for the required iPhone display sizes that match the current app UI (Discover, Live, Pricing / subscription, Go Live / music playback). Please use the screenshots attached to this version.
+
+Please let us know if you need anything else.
 
 Best regards,  
 Kalunez Team

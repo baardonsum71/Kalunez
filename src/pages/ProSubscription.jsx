@@ -208,7 +208,7 @@ export default function ProSubscription() {
             </p>
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 gap-12 my-16">
+          <div className="grid md:grid-cols-2 gap-8 md:gap-12 my-10 md:my-16 items-start">
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-white mb-6">What&apos;s Included</h2>
               {PRO_FEATURES.map(({ icon: Icon, label, description }) => (

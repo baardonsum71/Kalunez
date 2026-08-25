@@ -167,7 +167,7 @@ export default function Pricing() {
       )}
 
       <div className="max-w-6xl mx-auto px-4 pb-24">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {plans.map((plan) => {
             const productReady = !isNative || !storeReadyIds || storeReadyIds.has(plan.id);
             const busy = loadingId === plan.id;

@@ -1,56 +1,68 @@
-# App Store resubmit checklist — Kalunez (4.2 + 2.1b)
+# App Store resubmit checklist — Kalunez (build 16+)
 
-Do **not** submit until every box below is green.
+Do **not** submit until every box is green.
 
-## Sandbox IAP (Guideline 2.1b) — must work on iPhone **and** iPad
+## This rejection covered three items
 
-Test **both** screens:
-- Upgrade to Pro → **Subscribe Now** (`/subscription`)
-- Pricing → **Get Started** (`/pricing`)
+| Guideline | Issue | Fix in this build / your action |
+|-----------|--------|----------------------------------|
+| **4** | Not optimized for all screen sizes (iPad) | App is now **iPhone only** |
+| **2.1(b)** | Error when subscribing to Premium | IAP timeouts + you must verify StoreKit sheet on iPhone |
+| **2.3.3** | Old screenshots (6.5" iPhone / 13" iPad) | Upload **new** screenshots in ASC |
 
-1. [ ] Paid Apps Agreement active in App Store Connect → Business
-2. [ ] All subscription products **Cleared for Sale** / Ready to Submit
-3. [ ] Products attached to this app version
-4. [ ] RevenueCat iOS app: products linked; Offering `current` includes:
-   - `pro_monthly_subscription`
-   - `premium_monthly_subscription`
-   - `premium_podcast_monthly`
-   - `premium_yearly`
-   - `premium_podcast_yearly`
-5. [ ] Production build includes `VITE_REVENUECAT_IOS_PUBLIC_KEY` (`appl_…`)
-6. [ ] Device → Settings → App Store → Sandbox Account signed in
-7. [ ] Open Kalunez → sign in as `review@kalunez.app`
-8. [ ] Go to **Upgrade to Pro** → tap **Subscribe Now**
-9. [ ] **StoreKit payment sheet appears within ~10 seconds** (iPhone)
-10. [ ] Same on **iPad** (reviewer used iPad Air 11")
-11. [ ] Also test Pricing → Get Started
-12. [ ] If products missing: UI shows an error within 25s — never infinite "Processing…"
+## Before Archive (on Mac)
 
-## Native music (Guideline 4.2)
+1. [ ] `.env.local` has `VITE_REVENUECAT_IOS_PUBLIC_KEY=appl_...`
+2. [ ] `npm run build && npx cap sync ios`
+3. [ ] Xcode **Build = 16** (or higher)
+4. [ ] Xcode **Supported Destinations** = iPhone only (not iPad)
 
-1. [ ] Play a track → lock the phone → audio continues (`UIBackgroundModes` audio)
-2. [ ] Lock screen / Control Center shows track title + play/pause
-3. [ ] Share on a track/stream opens the **native share sheet**
-4. [ ] Light haptic on play/pause and after successful purchase
+## Sandbox IAP on iPhone (Guideline 2.1b)
+
+1. [ ] Paid Apps Agreement **Active**
+2. [ ] Subscription products Cleared for Sale / Ready to Submit and attached to this version
+3. [ ] RevenueCat Offering `current` includes `premium_monthly_subscription` and `pro_monthly_subscription`
+4. [ ] Device → Settings → App Store → Sandbox Account
+5. [ ] TestFlight build 16 → sign in `review@kalunez.app`
+6. [ ] **Pricing → Get Started on Premium Monthly**
+7. [ ] **StoreKit payment sheet appears within ~10 seconds**
+8. [ ] Also test Upgrade to Pro → Subscribe Now
+
+If the sheet does not appear → **do not submit**.
+
+## Screenshots (Guideline 2.3.3)
+
+Upload **new** images that match the current UI. For **6.5-inch iPhone** (required):
+
+Capture from the latest TestFlight / simulator build:
+
+1. Home / Discover with tracks visible
+2. Live or a stream screen
+3. Pricing (subscription plans) — shows Get Started
+4. Playing a track (floating player visible) OR Go Live form
+5. Optional: Library or For Artists
+
+**Tips**
+- Use real UI from build 16 — not old tip screenshots
+- No status bar overlays that look fake
+- If ASC still asks for **13-inch iPad** screenshots while the app is iPhone-only, you can often remove iPad as a device in the version’s screenshot set, or upload iPhone screenshots only once iPad is deselected in pricing/availability
 
 ## Review Notes (paste in ASC)
 
 ```
 Sandbox Apple ID: review@kalunez.app (password in App Review Information).
 
+This build is iPhone-only.
+
 To test IAP:
 1. Sign in with the review account.
-2. Open Upgrade to Pro (or Pricing).
-3. Tap Subscribe Now / Get Started on Pro Monthly.
+2. Open Pricing.
+3. Tap Get Started on Premium Monthly (premium_monthly_subscription).
 4. The App Store payment sheet should appear (StoreKit via RevenueCat).
 
-Native features to verify (Guideline 4.2):
-- Background audio playback while the app is locked
-- Lock screen / Control Center Now Playing controls
-- Native system share sheet on tracks and live streams
-- In-app purchases use StoreKit (not Safari checkout)
+Native features: background audio, lock screen Now Playing, native share sheet, StoreKit IAP.
 ```
 
-## Resolution Center reply
+## Resolution Center
 
 See [ASC_RESOLUTION_CENTER_REPLY.md](./ASC_RESOLUTION_CENTER_REPLY.md).
