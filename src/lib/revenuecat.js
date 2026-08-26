@@ -151,6 +151,9 @@ function formatPurchaseError(err) {
     return 'Purchase canceled.';
   }
   const msg = err?.message || String(err || 'Checkout failed');
+  if (/web billing api key|invalid api key/i.test(msg)) {
+    return 'Wrong RevenueCat API key for this platform. Web needs rcb_…, iOS app needs appl_… — check .env.local and rebuild.';
+  }
   if (/timed out|did not appear/i.test(msg)) {
     return msg;
   }
@@ -163,15 +166,41 @@ function formatPurchaseError(err) {
   return msg;
 }
 
+function normalizeKey(value) {
+  return String(value || '').trim();
+}
+
 function getPublicKey() {
   if (!IS_NATIVE) {
-    return import.meta.env.VITE_REVENUECAT_PUBLIC_KEY || WEB_BILLING_PUBLIC_KEY_FALLBACK;
+    // purchases-js ONLY accepts Web Billing keys (rcb_). If someone put appl_/goog_
+    // in VITE_REVENUECAT_PUBLIC_KEY, fall back so Safari/web still works.
+    const webKey = normalizeKey(import.meta.env.VITE_REVENUECAT_PUBLIC_KEY);
+    if (webKey.startsWith('rcb_')) return webKey;
+    if (webKey) {
+      console.warn(
+        '[RevenueCat] VITE_REVENUECAT_PUBLIC_KEY must be rcb_ (Web Billing). '
+        + 'appl_ belongs in VITE_REVENUECAT_IOS_PUBLIC_KEY. Using built-in web fallback.'
+      );
+    }
+    return WEB_BILLING_PUBLIC_KEY_FALLBACK;
   }
   // Capacitor shares one native plugin; store keys differ per platform.
   if (Capacitor.getPlatform() === 'android') {
-    return import.meta.env.VITE_REVENUECAT_ANDROID_PUBLIC_KEY;
+    const androidKey = normalizeKey(import.meta.env.VITE_REVENUECAT_ANDROID_PUBLIC_KEY);
+    if (androidKey && !androidKey.startsWith('goog_')) {
+      throw new Error(
+        'Wrong RevenueCat key for Android. VITE_REVENUECAT_ANDROID_PUBLIC_KEY must start with goog_.'
+      );
+    }
+    return androidKey || null;
   }
-  return import.meta.env.VITE_REVENUECAT_IOS_PUBLIC_KEY;
+  const iosKey = normalizeKey(import.meta.env.VITE_REVENUECAT_IOS_PUBLIC_KEY);
+  if (iosKey && !iosKey.startsWith('appl_')) {
+    throw new Error(
+      'Wrong RevenueCat key for iOS. VITE_REVENUECAT_IOS_PUBLIC_KEY must start with appl_ (App Store). Do not put the Web Billing rcb_ key here — and never put appl_ in VITE_REVENUECAT_PUBLIC_KEY.'
+    );
+  }
+  return iosKey || null;
 }
 
 function getMissingKeyVarName() {
