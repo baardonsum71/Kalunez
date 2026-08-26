@@ -1,36 +1,46 @@
-# App Store Connect — Resolution Center reply (build 16+)
+# App Store Connect — Resolution Center reply (build 17+)
 
-Paste when replying to Guidelines **4**, **2.1(b)**, and **2.3.3**.
+Paste when replying to Guidelines **4** and **5.1.2(i)**.
 
 ---
 
 Hello App Review Team,
 
-Thank you for the feedback. We have addressed the issues in this build as follows.
+Thank you for the feedback on version 1.0 (16). We have addressed the issues in this build as follows.
 
-### Guideline 4 — Design / screen sizes
+### Guideline 4 — Design (crowded interface)
 
-This build is configured for **iPhone only** (device family iPhone). We removed iPad as a target so the UI is no longer shown as an unoptimized iPad experience. Portrait orientation is supported on iPhone. Please review on iPhone.
+We simplified the user interface so primary tasks are easier to complete:
 
-### Guideline 2.1(b) — In-App Purchase / Subscribe
+- Header navigation reduced to core destinations (Discover, Library, Live, For Artists), with secondary actions in a single menu
+- Home screen decluttered (fewer competing sections and CTAs)
+- Pricing layout simplified with clearer plan cards and Premium Monthly highlighted for testing
+- App remains **iPhone only**
 
-We fixed the subscription flow so Subscribe / Get Started cannot spin indefinitely:
+Please review on iPhone.
 
-- Native StoreKit purchases via RevenueCat with hard timeouts and clear on-screen errors.
-- Product preflight on Pricing and Upgrade to Pro.
-- Please test with the sandbox account below on **iPhone**.
+### Guideline 5.1.2(i) — Privacy / cookies / tracking
 
-**Sandbox account:** review@kalunez.app (password in App Review Information)
+Kalunez does **not** track users across other companies’ apps or websites in the native iOS app.
 
-**Steps to purchase:**
-1. Sign in with the review account.
-2. Open **Pricing** (or Upgrade to Pro).
-3. Tap **Get Started** on **Premium Monthly** (`premium_monthly_subscription`) — or Subscribe Now on Pro Monthly.
-4. The App Store payment sheet should appear within a few seconds.
+In this build:
 
-### Guideline 2.3.3 — Screenshots / metadata
+- No cookie / tracking consent banner is shown on iOS
+- Optional analytics (PostHog) and analytics event persistence are **disabled** on native iOS
+- Cookie preference controls and cookie-policy links are **removed** from the native Settings / footer UI
+- The app uses only essential functionality cookies required to run login and playback
 
-We uploaded new screenshots for the required iPhone display sizes that match the current app UI (Discover, Live, Pricing / subscription, Go Live / music playback). Please use the screenshots attached to this version.
+We are **not** implementing App Tracking Transparency because we do not collect data for tracking as defined in Guideline 5.1.2.
+
+### In-App Purchase (if re-tested)
+
+Sandbox account: review@kalunez.app (password in App Review Information)
+
+Steps:
+1. Sign in with the review account
+2. Open Pricing
+3. Tap Get Started on **Premium Monthly** (`premium_monthly_subscription`)
+4. The App Store payment sheet should appear
 
 Please let us know if you need anything else.
 

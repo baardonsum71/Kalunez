@@ -26,7 +26,7 @@ export const SUBSCRIPTION_PLANS = [
     price: '69 kr',
     period: '/month',
     tier: 'premium',
-    popular: false,
+    popular: true,
     features: [
       'Unlimited music uploads',
       'HD audio streaming',
@@ -70,7 +70,7 @@ export const SUBSCRIPTION_PLANS = [
     price: '899 kr',
     period: '/year',
     tier: 'premium_podcast',
-    popular: true,
+    popular: false,
     features: [
       'Everything in Premium + Podcast',
       'Save 169 kr per year',

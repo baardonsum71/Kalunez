@@ -40,7 +40,7 @@ function getSessionId() {
 
 export function initAnalytics() {
   if (initialized || typeof window === 'undefined') return;
-  // No third-party analytics cookies in the native shell without ATT.
+  // Native iOS/Android: no PostHog / tracking cookies (Apple Guideline 5.1.2 — no ATT).
   if (Capacitor.isNativePlatform()) return;
 
   const key = import.meta.env.VITE_POSTHOG_KEY;
@@ -63,6 +63,7 @@ export function isAnalyticsEnabled() {
 }
 
 async function persistEvent(eventName, properties = {}) {
+  if (Capacitor.isNativePlatform()) return;
   if (!hasAnalyticsConsent()) return;
   if (!KEY_EVENTS.has(eventName)) return;
 
@@ -84,6 +85,7 @@ async function persistEvent(eventName, properties = {}) {
 }
 
 export function identifyUser(user) {
+  if (Capacitor.isNativePlatform()) return;
   if (!user || !hasAnalyticsConsent()) return;
 
   const traits = {
@@ -107,6 +109,7 @@ export function resetAnalytics() {
 }
 
 export function trackPageView(path, title) {
+  if (Capacitor.isNativePlatform()) return;
   if (!hasAnalyticsConsent()) return;
 
   const props = { page_path: path, page_title: title };
@@ -119,6 +122,7 @@ export function trackPageView(path, title) {
 }
 
 export function track(eventName, properties = {}) {
+  if (Capacitor.isNativePlatform()) return;
   if (!hasAnalyticsConsent()) return;
 
   if (initialized) {

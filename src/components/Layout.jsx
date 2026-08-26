@@ -19,11 +19,15 @@ export default function Layout() {
   const { user, isAuthenticated, logout } = useAuth();
   const scrollPositions = useRef({});
 
-  const navLinks = useMemo(() => [
+  // Primary nav only — reduces crowded header (Guideline 4).
+  const primaryLinks = useMemo(() => [
     { label: t('nav.discover'), href: '/discover', icon: Zap },
     { label: t('nav.library'), href: '/library', icon: Music },
     { label: t('nav.live'), href: '/live', icon: Radio },
     { label: t('nav.forArtists'), href: '/for-artists', icon: Mic2 },
+  ], [t]);
+
+  const moreLinks = useMemo(() => [
     { label: t('nav.upload'), href: '/upload', icon: Upload },
     { label: t('nav.goLive'), href: '/go-live', icon: Tv2 },
     { label: t('nav.dashboard'), href: '/artist-dashboard', icon: BarChart2 },
@@ -31,6 +35,8 @@ export default function Layout() {
     { label: t('nav.notifications'), href: '/notifications', icon: Bell },
     { label: t('nav.settings'), href: '/settings', icon: Settings },
   ], [t]);
+
+  const menuLinks = useMemo(() => [...primaryLinks, ...moreLinks], [primaryLinks, moreLinks]);
 
   const bottomNavLinks = useMemo(() => [
     { label: t('nav.home'), href: '/', icon: Home },
@@ -47,6 +53,7 @@ export default function Layout() {
     staleTime: 15000,
   });
 
+  const unreadCount = notifications.length;
   const isRootScreen = ROOT_SCREENS.some(route => location.pathname === route);
 
   useEffect(() => {
@@ -62,6 +69,10 @@ export default function Layout() {
     if (savedPos != null) {
       requestAnimationFrame(() => window.scrollTo(0, savedPos));
     }
+  }, [location.pathname]);
+
+  useEffect(() => {
+    setMenuOpen(false);
   }, [location.pathname]);
 
   return (
@@ -86,63 +97,68 @@ export default function Layout() {
           </div>
         )}
 
-        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 select-none" aria-label="Kalunez home">
+        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+          <Link to="/" className="flex items-center gap-2 select-none shrink-0" aria-label="Kalunez home">
             <span className="font-display text-2xl tracking-wide logo-gradient-text">KALUNEZ</span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-1">
-            {navLinks.map(({ label, href }) => {
-              const unread = href === '/notifications' ? notifications.length : 0;
+          <div className="hidden md:flex items-center gap-1 flex-1 justify-center">
+            {primaryLinks.map(({ label, href }) => (
+              <Link
+                key={href}
+                to={href}
+                className={`select-none px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  location.pathname === href
+                    ? 'text-[var(--lime)] bg-white/5'
+                    : 'text-muted-foreground hover:text-white hover:bg-white/5'
+                }`}
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            className="select-none relative text-muted-foreground hover:text-white p-2 shrink-0"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+          >
+            {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {unreadCount > 0 && !menuOpen && (
+              <span className="absolute top-1 right-1 min-w-4 h-4 bg-destructive rounded-full text-white text-[10px] flex items-center justify-center font-bold px-1">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {menuOpen && (
+          <div className="border-t border-border bg-background/95 px-4 py-3 flex flex-col gap-1 max-h-[70vh] overflow-y-auto">
+            {menuLinks.map(({ label, href, icon: Icon }) => {
+              const unread = href === '/notifications' ? unreadCount : 0;
               return (
                 <Link
                   key={href}
                   to={href}
-                  className={`select-none px-3 py-1.5 rounded-md text-sm font-medium transition-colors relative ${
+                  onClick={() => setMenuOpen(false)}
+                  className={`select-none flex items-center gap-2 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
                     location.pathname === href
                       ? 'text-[var(--lime)] bg-white/5'
                       : 'text-muted-foreground hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  {label}
+                  <Icon className="w-4 h-4" />
+                  <span className="flex-1">{label}</span>
                   {unread > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 bg-destructive rounded-full text-white text-xs flex items-center justify-center font-bold px-1">
+                    <span className="min-w-5 h-5 bg-destructive rounded-full text-white text-xs flex items-center justify-center font-bold px-1">
                       {unread > 99 ? '99+' : unread}
                     </span>
                   )}
                 </Link>
               );
             })}
-          </div>
-
-          <button
-            type="button"
-            className="select-none md:hidden text-muted-foreground hover:text-white p-2"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={menuOpen}
-          >
-            {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
-
-        {menuOpen && (
-          <div className="md:hidden border-t border-border bg-background/95 px-4 py-3 flex flex-col gap-1">
-            {navLinks.map(({ label, href, icon: Icon }) => (
-              <Link
-                key={href}
-                to={href}
-                onClick={() => setMenuOpen(false)}
-                className={`select-none flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  location.pathname === href
-                    ? 'text-[var(--lime)] bg-white/5'
-                    : 'text-muted-foreground hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {label}
-              </Link>
-            ))}
             {isAuthenticated ? (
               <button
                 type="button"
@@ -150,7 +166,7 @@ export default function Layout() {
                   setMenuOpen(false);
                   logout();
                 }}
-                className="select-none flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-white hover:bg-white/5"
+                className="select-none flex items-center gap-2 px-3 py-2.5 rounded-md text-sm font-medium text-muted-foreground hover:text-white hover:bg-white/5"
               >
                 <LogOut className="w-4 h-4" />
                 {t('settings.signOut')}
@@ -159,7 +175,7 @@ export default function Layout() {
               <Link
                 to="/login"
                 onClick={() => setMenuOpen(false)}
-                className="select-none flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-[var(--lime)] hover:bg-white/5"
+                className="select-none flex items-center gap-2 px-3 py-2.5 rounded-md text-sm font-medium text-[var(--lime)] hover:bg-white/5"
               >
                 {t('common.signIn')}
               </Link>
