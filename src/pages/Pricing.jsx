@@ -166,11 +166,13 @@ export default function Pricing() {
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto px-4 pb-24">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+      <div className="max-w-lg mx-auto px-4 pb-24">
+        {/* Single column on device — avoids crowded 2-up grids when Review opens iPhone binary on iPad. */}
+        <div className="grid grid-cols-1 gap-6">
           {plans.map((plan) => {
             const productReady = !isNative || !storeReadyIds || storeReadyIds.has(plan.id);
             const busy = loadingId === plan.id;
+            const featurePreview = plan.features.slice(0, isNative ? 3 : plan.features.length);
             return (
               <div
                 key={plan.id}
@@ -196,7 +198,7 @@ export default function Pricing() {
                 </div>
 
                 <ul className="space-y-3 flex-1 mb-8">
-                  {plan.features.map((f) => (
+                  {featurePreview.map((f) => (
                     <li key={f} className="flex items-start gap-2 text-foreground text-sm">
                       <CheckCircle2 className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0" />
                       {f}
@@ -208,7 +210,7 @@ export default function Pricing() {
                   type="button"
                   onClick={() => handleSubscribe(plan)}
                   disabled={busy}
-                  className={`w-full py-3 rounded-xl font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 touch-manipulation ${
+                  className={`w-full py-4 rounded-xl font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 touch-manipulation min-h-12 ${
                     plan.popular ? 'bg-gradient-to-r from-purple-500 to-cyan-500' : 'gradient-bg'
                   }`}
                 >

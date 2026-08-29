@@ -1,46 +1,38 @@
-# App Store Connect — Resolution Center reply (build 17+)
+# App Store Connect — Resolution Center reply (build 18+)
 
-Paste when replying to Guidelines **4** and **5.1.2(i)**.
+Paste when replying to Guidelines **4** and **2.1(b)**.
 
 ---
 
 Hello App Review Team,
 
-Thank you for the feedback on version 1.0 (16). We have addressed the issues in this build as follows.
+Thank you for the feedback on version 1.0. We have addressed the issues in this build as follows.
 
-### Guideline 4 — Design (crowded interface)
+### Guideline 4 — Design (crowded interface on iPad)
 
-We simplified the user interface so primary tasks are easier to complete:
+Kalunez is an **iPhone-only** app (`TARGETED_DEVICE_FAMILY = 1`, portrait, full screen). It is not designed as a universal iPad app.
 
-- Header navigation reduced to core destinations (Discover, Library, Live, For Artists), with secondary actions in a single menu
-- Home screen decluttered (fewer competing sections and CTAs)
-- Pricing layout simplified with clearer plan cards and Premium Monthly highlighted for testing
-- App remains **iPhone only**
+In this build we further reduced crowding for the iPhone UI (and when the iPhone binary is opened in compatibility mode on iPad):
 
-Please review on iPhone.
+- Primary navigation limited to a small set of destinations; secondary actions stay in one menu
+- Home and Pricing simplified (single-column plans on device, clearer Premium Monthly CTA)
+- On larger viewports, the native UI stays in a phone-width column so controls are not stretched across the iPad canvas
 
-### Guideline 5.1.2(i) — Privacy / cookies / tracking
+**Please review on iPhone.** If you must open the binary on iPad, use the iPhone compatibility window rather than treating it as a native iPad layout.
 
-Kalunez does **not** track users across other companies’ apps or websites in the native iOS app.
+### Guideline 2.1(b) — In-App Purchase
 
-In this build:
-
-- No cookie / tracking consent banner is shown on iOS
-- Optional analytics (PostHog) and analytics event persistence are **disabled** on native iOS
-- Cookie preference controls and cookie-policy links are **removed** from the native Settings / footer UI
-- The app uses only essential functionality cookies required to run login and playback
-
-We are **not** implementing App Tracking Transparency because we do not collect data for tracking as defined in Guideline 5.1.2.
-
-### In-App Purchase (if re-tested)
+We fixed the purchase path so Subscribe / Get Started opens the App Store payment sheet instead of hanging or failing with a wrong API key.
 
 Sandbox account: review@kalunez.app (password in App Review Information)
 
-Steps:
+Steps to verify:
 1. Sign in with the review account
-2. Open Pricing
-3. Tap Get Started on **Premium Monthly** (`premium_monthly_subscription`)
-4. The App Store payment sheet should appear
+2. Open **Pricing**
+3. Tap **Get Started** on **Premium Monthly** (`premium_monthly_subscription`)
+4. The App Store / StoreKit payment sheet should appear
+
+Products are Cleared for Sale and linked in RevenueCat Offerings. Paid Apps Agreement is active.
 
 Please let us know if you need anything else.
 

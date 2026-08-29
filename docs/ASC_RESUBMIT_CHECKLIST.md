@@ -1,34 +1,29 @@
-# App Store resubmit checklist — Kalunez (build 17+)
+# App Store resubmit checklist — Kalunez (build 18+)
 
-## This rejection
+## This rejection (iPad Air 11-inch)
 
 | Guideline | Issue | Fix |
 |-----------|--------|-----|
-| **4** | Crowded UI / hard to complete tasks (also mentioned iPad) | Simplified nav, home, pricing; iPhone only |
-| **5.1.2(i)** | Cookies / tracking without ATT | No cookie banner, no PostHog, no cookie settings on native |
+| **4** | Crowded UI on iPad | iPhone-only + phone-width column on large screens; simpler Pricing |
+| **2.1(b)** | IAP bugs / poor purchase UX | Correct `appl_` key in native build; preflight + timeout; Resolution Center steps |
 
-## Before Archive
+## Before Archive (Mac)
 
 1. [ ] `git pull origin cursor/fix-asc-iap-native-1c89`
-2. [ ] `.env.local` has `VITE_REVENUECAT_IOS_PUBLIC_KEY=appl_...`
+2. [ ] `.env.local` has all three keys (`rcb_`, `appl_`, `goog_`) — **never** put `appl_` in `PUBLIC_KEY`
 3. [ ] `npm run build && npx cap sync ios`
-4. [ ] Xcode Build = **17**
-5. [ ] Confirm **iPhone only** (not iPad) in Xcode destinations
+4. [ ] Xcode Build = **18**
+5. [ ] General → Supported Destinations = **iPhone** only
 
-## Privacy (5.1.2) — verify on device
+## Mandatory IAP smoke test (TestFlight on iPhone)
 
-1. [ ] Open app → **no** cookie banner
-2. [ ] Settings → **no** Cookie preferences / Cookies link
-3. [ ] No ATT permission prompt (we do not track)
-
-## IAP smoke test (iPhone)
-
-1. [ ] Pricing → Get Started on **Premium Monthly**
-2. [ ] StoreKit sheet appears
+1. [ ] Pricing → **Get Started** on **Premium Monthly**
+2. [ ] StoreKit sheet appears (not “Invalid API key” / hang)
+3. Do **not** resubmit until this works
 
 ## Screenshots
 
-Upload current UI screenshots for 6.5" iPhone (Home, Discover, Pricing, Live).
+Upload current **iPhone** screenshots (6.5"): Home, Discover, Pricing, Live.
 
 ## Resolution Center
 
