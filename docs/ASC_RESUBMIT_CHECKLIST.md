@@ -1,4 +1,4 @@
-# App Store resubmit checklist — Kalunez (build 18+)
+# App Store resubmit checklist — Kalunez (build 19+)
 
 ## This rejection (iPad Air 11-inch)
 
@@ -12,7 +12,7 @@
 1. [ ] `git pull origin cursor/fix-asc-iap-native-1c89`
 2. [ ] `.env.local` has all three keys (`rcb_`, `appl_`, `goog_`) — **never** put `appl_` in `PUBLIC_KEY`
 3. [ ] `npm run build && npx cap sync ios`
-4. [ ] Xcode Build = **18**
+4. [ ] Xcode Build = **19**
 5. [ ] General → Supported Destinations = **iPhone** only
 
 ## Mandatory IAP smoke test (TestFlight on iPhone)
