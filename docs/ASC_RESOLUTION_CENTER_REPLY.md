@@ -1,4 +1,4 @@
-# App Store Connect — Resolution Center reply (build 18+)
+# App Store Connect — Resolution Center reply (build 19+)
 
 Paste when replying to Guidelines **4** and **2.1(b)**.
 
