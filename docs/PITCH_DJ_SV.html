@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kalunez — Framtidspitch för dig</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #050507;
+      --fg: #f4f4ef;
+      --muted: #9a9aab;
+      --lime: #c8f542;
+      --magenta: #ff2d95;
+      --card: rgba(255,255,255,0.04);
+      --line: rgba(255,255,255,0.1);
+      --font-display: "Bebas Neue", Impact, sans-serif;
+      --font-body: "DM Sans", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.55;
+      overflow-x: hidden;
+    }
+    a { color: var(--lime); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .hero {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: grid;
+      align-items: end;
+      position: relative;
+      padding: clamp(1.5rem, 4vw, 3rem);
+      background:
+        radial-gradient(ellipse 90% 60% at 15% 10%, rgba(255,45,149,0.28), transparent 55%),
+        radial-gradient(ellipse 70% 50% at 90% 20%, rgba(200,245,66,0.18), transparent 50%),
+        linear-gradient(180deg, #050507 0%, #0a0a10 55%, #050507 100%);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      opacity: 0.05;
+      pointer-events: none;
+      mix-blend-mode: overlay;
+    }
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+      max-width: 44rem;
+      padding-bottom: clamp(2rem, 8vh, 5rem);
+      animation: rise 0.9s ease both;
+    }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .brand {
+      font-family: var(--font-display);
+      font-size: clamp(4.5rem, 18vw, 9rem);
+      line-height: 0.9;
+      letter-spacing: 0.04em;
+      background: linear-gradient(95deg, var(--lime), var(--magenta));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 1rem;
+    }
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      letter-spacing: 0.03em;
+      font-weight: 400;
+      max-width: 18ch;
+      margin-bottom: 0.85rem;
+    }
+    .hero p {
+      color: var(--muted);
+      font-size: clamp(1rem, 2.4vw, 1.15rem);
+      max-width: 36ch;
+      margin-bottom: 1.75rem;
+    }
+    .cta-row { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 3rem;
+      padding: 0.75rem 1.35rem;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+    .btn:hover { transform: translateY(-1px); text-decoration: none; }
+    .btn-primary {
+      background: linear-gradient(120deg, var(--lime), #e8ff8a);
+      color: #0a0a0c;
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--fg);
+      border: 1px solid var(--line);
+    }
+
+    section {
+      padding: clamp(3.5rem, 9vw, 6.5rem) clamp(1.5rem, 4vw, 3rem);
+      border-top: 1px solid var(--line);
+    }
+    .wrap { max-width: 68rem; margin: 0 auto; }
+    .eyebrow {
+      font-size: 0.75rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--lime);
+      margin-bottom: 0.75rem;
+      font-weight: 700;
+    }
+    section h2 {
+      font-family: var(--font-display);
+      font-size: clamp(2.2rem, 6vw, 3.6rem);
+      letter-spacing: 0.03em;
+      line-height: 1;
+      margin-bottom: 0.85rem;
+      max-width: 16ch;
+    }
+    .lead {
+      color: var(--muted);
+      max-width: 42rem;
+      margin-bottom: 2rem;
+      font-size: 1.05rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      gap: 1.25rem;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 800px) {
+      .grid-2 { grid-template-columns: 1fr 1fr; }
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 1.25rem;
+      padding: 1.5rem 1.35rem;
+      transition: border-color 0.25s ease, transform 0.25s ease;
+    }
+    .panel:hover {
+      border-color: rgba(200,245,66,0.35);
+      transform: translateY(-2px);
+    }
+    .panel h3 {
+      font-family: var(--font-display);
+      font-size: 1.7rem;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.5rem;
+    }
+    .panel p { color: var(--muted); font-size: 0.98rem; }
+
+    .money {
+      display: grid;
+      gap: 0.85rem;
+    }
+    .money-row {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .money-row:last-child { border-bottom: none; }
+    .tag {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      letter-spacing: 0.04em;
+      color: var(--magenta);
+      min-width: 7rem;
+    }
+
+    .wheel-demo {
+      position: relative;
+      margin-top: 2rem;
+      border-radius: 1.5rem;
+      border: 1px solid var(--line);
+      background:
+        radial-gradient(circle at 50% 40%, rgba(255,45,149,0.2), transparent 55%),
+        rgba(255,255,255,0.03);
+      padding: clamp(1.5rem, 4vw, 2.5rem);
+      overflow: hidden;
+      text-align: center;
+    }
+    .wheel {
+      width: min(240px, 70vw);
+      height: min(240px, 70vw);
+      margin: 0 auto 1.25rem;
+      border-radius: 50%;
+      border: 4px solid rgba(200,245,66,0.55);
+      background:
+        conic-gradient(
+          from 0deg,
+          #ff2d95 0 45deg,
+          #1a1a22 45deg 90deg,
+          #c8f542 90deg 135deg,
+          #1a1a22 135deg 180deg,
+          #ff2d95 180deg 225deg,
+          #1a1a22 225deg 270deg,
+          #c8f542 270deg 315deg,
+          #1a1a22 315deg 360deg
+        );
+      box-shadow: 0 0 60px rgba(255,45,149,0.25);
+      animation: idle-spin 18s linear infinite;
+      position: relative;
+    }
+    .wheel.spinning {
+      animation: challenge-spin 3.2s cubic-bezier(0.12, 0.75, 0.2, 1) forwards;
+    }
+    @keyframes idle-spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes challenge-spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(1480deg); }
+    }
+    .wheel-pointer {
+      width: 0; height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-top: 18px solid var(--lime);
+      margin: 0 auto 0.75rem;
+    }
+    .song-pick {
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      letter-spacing: 0.03em;
+      min-height: 2.4rem;
+      margin-bottom: 0.35rem;
+    }
+    .song-sub { color: var(--muted); margin-bottom: 1.25rem; }
+
+    .note {
+      margin-top: 2rem;
+      padding: 1rem 1.15rem;
+      border-left: 3px solid var(--lime);
+      background: rgba(200,245,66,0.06);
+      color: var(--muted);
+      font-size: 0.92rem;
+      max-width: 46rem;
+    }
+
+    footer {
+      padding: 2.5rem clamp(1.5rem, 4vw, 3rem) 3.5rem;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    footer .wrap { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center; }
+    footer strong { color: var(--fg); }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="brand">KALUNEZ</div>
+      <h1>Din scen. Din publik. Din affär.</h1>
+      <p>En musik- och liveplattform byggd för en programledare och DJ som redan äger uppmärksamheten — TV4, YouTube och community.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#affar">Se affärsmodellen</a>
+        <a class="btn btn-ghost" href="#challenge">Song Challenge</a>
+      </div>
+    </div>
+  </header>
+
+  <section id="varfor">
+    <div class="wrap">
+      <p class="eyebrow">Varför dig</p>
+      <h2>Du har redan publiken. Kalunez ger dig plattformen.</h2>
+      <p class="lead">
+        Du är programledare i svensk TV — bland annat TV4 — och har varit nominerad till Årets programledare
+        för <em>Spökjakt</em>. Du har en stor YouTube-följarskara. Kalunez är tänkt som din digitala hemvist
+        där fans streamar, tittar live, köper biljetter och abonnemang — medan du äger varumärket och intäkterna.
+      </p>
+      <div class="grid-2">
+        <article class="panel">
+          <h3>TV4 &amp; program</h3>
+          <p>På sajten: profilblock med länk till TV4 / programmens sidor. Du kan sälja synlighet (sponsrade slots) eller ta betalt för placering — när avtal finns på plats.</p>
+        </article>
+        <article class="panel">
+          <h3>YouTube</h3>
+          <p>Fast länk till din kanal i header/footer och artistprofil. Cross-promo: “Se bakom kulisserna på YouTube” → trafik tillbaka till lives och drops i Kalunez.</p>
+        </article>
+        <article class="panel">
+          <h3>Designkläder &amp; gear</h3>
+          <p>Du gillar designplagg och utrustning. Med rätt tillstånd: merch-/partner-sektion, affiliate-länkar eller shop-collabs — aldrig utan avtal.</p>
+        </article>
+        <article class="panel">
+          <h3>Live + musik</h3>
+          <p>Gå live, sälj biljetter, kör abonnemang (iOS/Android IAP). Fans följer dig på samma ställe som musiken — inte bara i flödet på någon annans app.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="affar">
+    <div class="wrap">
+      <p class="eyebrow">Intäktsvägar</p>
+      <h2>Så tjänar du — utöver att äga appen</h2>
+      <p class="lead">Ägarskapet ger dig abonnemang, biljetter och framtida reklamytor. Nedan: konkreta spår kopplade till din profil.</p>
+      <div class="money">
+        <div class="money-row">
+          <div class="tag">TV4</div>
+          <div>
+            <strong>Program &amp; synlighet</strong>
+            <p style="color:var(--muted);margin-top:0.35rem">Länkblock och “sett på TV4”-modul. Sponsorer kan köpa placering bredvid ditt programnamn. Du fakturerar reklam / partnerskap — Kalunez är ytan.</p>
+          </div>
+        </div>
+        <div class="money-row">
+          <div class="tag">YouTube</div>
+          <div>
+            <strong>Kanaltrafik &amp; promo</strong>
+            <p style="color:var(--muted);margin-top:0.35rem">Permanent kanal-CTA. Integrerade videoklipp / “senaste från YouTube”. Möjlighet till betald promo för videor eller merch-drops.</p>
+          </div>
+        </div>
+        <div class="money-row">
+          <div class="tag">STYLE</div>
+          <div>
+            <strong>Kläder &amp; gear</strong>
+            <p style="color:var(--muted);margin-top:0.35rem">Partnerhyllor för märken du står bakom — endast med skriftligt tillstånd. Commission / flat fee per kampanj.</p>
+          </div>
+        </div>
+        <div class="money-row">
+          <div class="tag">LIVE</div>
+          <div>
+            <strong>Abonnemang &amp; biljetter</strong>
+            <p style="color:var(--muted);margin-top:0.35rem">Premium/Pro via App Store &amp; Google Play. Biljetter till lives. Utbetalning till dig som artist/ägare via befintlig payout-spår.</p>
+          </div>
+        </div>
+        <div class="money-row">
+          <div class="tag">WHEEL</div>
+          <div>
+            <strong>Song Challenge</strong>
+            <p style="color:var(--muted);margin-top:0.35rem">Se nedan — engagemang + sponsrad premie = show + intäkt.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="challenge">
+    <div class="wrap">
+      <p class="eyebrow">Produktidé — Song Challenge</p>
+      <h2>Hjulet snurrar. Låten väljs. Matchen börjar.</h2>
+      <p class="lead">
+        Du sätter upp challenge-matcher: ett hjul snurrar och landar på låtar som ska tävlas om —
+        DJ vs DJ, fans vs fans, eller live-gäster. Vinnaren tar hem en stark premie
+        (kontant, gear, merch, studio-tid, TV-relaterad upplevelse — vad du och sponsorn enas om).
+      </p>
+      <div class="wheel-demo">
+        <div class="wheel-pointer" aria-hidden="true"></div>
+        <div class="wheel" id="wheel" aria-hidden="true"></div>
+        <div class="song-pick" id="songPick">Tryck för att snurra</div>
+        <p class="song-sub" id="songSub">Premieexempel: signerad merch + live-slot på din nästa sändning</p>
+        <button type="button" class="btn btn-primary" id="spinBtn">Snurra hjulet</button>
+      </div>
+      <div class="grid-2" style="margin-top:1.75rem">
+        <article class="panel">
+          <h3>Så funkar showen</h3>
+          <p>1) Du skapar challenge · 2) Hjulet väljer låtar · 3) Live-match med chat/röster · 4) Vinnare får premien · 5) Replay + YouTube-klipp driver mer trafik.</p>
+        </article>
+        <article class="panel">
+          <h3>Varför det säljer</h3>
+          <p>Spektakel för TV-/YouTube-publiken, naturlig plats för sponsorpremie, och återkommande event-format — inte engångshype.</p>
+        </article>
+      </div>
+      <p class="note">
+        <strong style="color:var(--fg)">Status:</strong> Song Challenge beskrivs här som <em>framtidssatsning</em> under ditt ägarskap —
+        kärnan (stream, live, biljetter, abonnemang) finns i produkten. Hjul/match byggs som nästa feature när du tar över.
+      </p>
+    </div>
+  </section>
+
+  <section id="deal">
+    <div class="wrap">
+      <p class="eyebrow">Affären</p>
+      <h2>Vad du får när du köper</h2>
+      <div class="grid-2">
+        <article class="panel">
+          <h3>Produkten</h3>
+          <p>Kalunez-appen (iOS + Android-spår), webb, live, musikbibliotek, prenumerationer, biljetter, artistverktyg — varumärke och kodbas.</p>
+        </article>
+        <article class="panel">
+          <h3>Din position</h3>
+          <p>Du blir ansiktet och ägaren. TV4-, YouTube- och stil-ytor styrs av dig. Challenges blir ditt format.</p>
+        </article>
+        <article class="panel">
+          <h3>Nästa steg</h3>
+          <p>Demo live · genomgång av intäktsflöden · avsiktsförklaring. Store-godkännanden kommuniceras ärligt — pitch efter faktisk status.</p>
+        </article>
+        <article class="panel">
+          <h3>Kontakt</h3>
+          <p>Öppna denna pitch i webbläsaren under mötet. Be om en kort live-demo av Pricing, Live och artist-dashboard.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <p><strong>KALUNEZ</strong> — framtidsvision för dig som köpare. Inte ett offentligt App Store-löfte förrän godkännande finns.</p>
+      <p>kalunez.com</p>
+    </div>
+  </footer>
+
+  <script>
+    const songs = [
+      { title: "Midnight Heat", sub: "Premie: signerad merch + live-gästslot" },
+      { title: "Neon Runaway", sub: "Premie: studio-tid + gear-voucher" },
+      { title: "Spökjakt Drop", sub: "Premie: VIP till nästa liveshow" },
+      { title: "Club Oxide", sub: "Premie: cash + YouTube-feature" },
+      { title: "Lime Pulse", sub: "Premie: designplagg collab-kit" },
+      { title: "Afterhours", sub: "Premie: headline på Kalunez Live" },
+      { title: "TV4 Energy", sub: "Premie: sponsrad challenge-vinst" },
+      { title: "Bass Ritual", sub: "Premie: merch + biljettpaket" },
+    ];
+    const wheel = document.getElementById("wheel");
+    const pick = document.getElementById("songPick");
+    const sub = document.getElementById("songSub");
+    const btn = document.getElementById("spinBtn");
+    let busy = false;
+
+    btn.addEventListener("click", () => {
+      if (busy) return;
+      busy = true;
+      btn.disabled = true;
+      pick.textContent = "…";
+      sub.textContent = "Hjulet väljer låt…";
+      wheel.classList.remove("spinning");
+      void wheel.offsetWidth;
+      wheel.classList.add("spinning");
+      const choice = songs[Math.floor(Math.random() * songs.length)];
+      setTimeout(() => {
+        pick.textContent = choice.title;
+        sub.textContent = choice.sub;
+        busy = false;
+        btn.disabled = false;
+        wheel.classList.remove("spinning");
+      }, 3200);
+    });
+  </script>
+</body>
+</html>
