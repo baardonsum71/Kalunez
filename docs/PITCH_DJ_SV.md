@@ -1,6 +1,15 @@
 # Framtidspitch — Kalunez till svensk DJ / programledare
 
-Öppna den visuella pitchen: [`PITCH_DJ_SV.html`](./PITCH_DJ_SV.html) (dubbelklicka eller `open docs/PITCH_DJ_SV.html` på Mac).
+Öppna den **nya** visuella pitchen (välj en):
+
+```bash
+open docs/PITCH_DJ_FRAMTID_SV.html
+# eller
+open docs/PITCH_DJ_SV.html
+```
+
+Du ska se en **lime-grön badge** högst upp: `Ny framtidspitch · sep 2026 · TV4 · YouTube · Hjul`.  
+Saknas den = du tittar fortfarande på en gammal lokal kopia.
 
 ## Positionering (30 sekunder)
 
