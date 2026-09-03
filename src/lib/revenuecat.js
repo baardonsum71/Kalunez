@@ -151,19 +151,29 @@ function formatPurchaseError(err) {
     return 'Purchase canceled.';
   }
   const msg = err?.message || String(err || 'Checkout failed');
-  if (/web billing api key|invalid api key/i.test(msg)) {
-    return 'Wrong RevenueCat API key for this platform. Web needs rcb_…, iOS app needs appl_… — check .env.local and rebuild.';
+  // Keep App Review / end-user copy short. Detailed config hints stay in console.
+  if (/web billing api key|invalid api key|wrong revenuecat key/i.test(msg)) {
+    console.error('[RevenueCat] API key misconfigured for this platform:', msg);
+    return 'Purchase could not start. Please close the app, reopen, and try again.';
+  }
+  if (/not configured|add vite_revenuecat/i.test(msg)) {
+    console.error('[RevenueCat] Missing public key in this build:', msg);
+    return 'Purchase is temporarily unavailable. Please try again later.';
   }
   if (/timed out|did not appear/i.test(msg)) {
-    return msg;
+    return 'The App Store payment sheet did not open in time. Check your network and try again.';
   }
-  if (/not available|could not be found|no products|offering/i.test(msg)) {
-    return `${msg} Make sure the Paid Apps Agreement is active and the product is Cleared for Sale.`;
+  if (/not available|could not be found|no products|offering|cleared for sale/i.test(msg)) {
+    console.error('[RevenueCat] Product / offering issue:', msg);
+    return 'This subscription is not available from the App Store right now. Please try again later.';
   }
   if (/network|offline|internet|connection/i.test(msg)) {
-    return `${msg} Check your network connection and try again.`;
+    return 'Network error. Check your connection and try again.';
   }
-  return msg;
+  if (/signed in|sign-in|sign in/i.test(msg)) {
+    return 'Please sign in again, then retry the purchase.';
+  }
+  return 'Purchase could not be completed. Please try again.';
 }
 
 function normalizeKey(value) {

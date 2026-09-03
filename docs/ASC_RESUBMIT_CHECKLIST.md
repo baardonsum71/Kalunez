@@ -1,30 +1,33 @@
-# App Store resubmit checklist — Kalunez (build 19+)
+# App Store resubmit — build 20 (IAP error on iPhone)
 
-## This rejection (iPad Air 11-inch)
+## Rejection
 
-| Guideline | Issue | Fix |
-|-----------|--------|-----|
-| **4** | Crowded UI on iPad | iPhone-only + phone-width column on large screens; simpler Pricing |
-| **2.1(b)** | IAP bugs / poor purchase UX | Correct `appl_` key in native build; preflight + timeout; Resolution Center steps |
+| Guideline | Device | Issue |
+|-----------|--------|--------|
+| **2.1(b)** | iPhone 17 Pro Max / iOS 26.6.1 | Error message when using IAP |
 
-## Before Archive (Mac)
+## Root cause (most likely)
 
-1. [ ] `git pull origin cursor/fix-asc-iap-native-1c89`
-2. [ ] `.env.local` has all three keys (`rcb_`, `appl_`, `goog_`) — **never** put `appl_` in `PUBLIC_KEY`
-3. [ ] `npm run build && npx cap sync ios`
-4. [ ] Xcode Build = **19**
-5. [ ] General → Supported Destinations = **iPhone** only
+Archive built **without** `VITE_REVENUECAT_IOS_PUBLIC_KEY=appl_…` baked in → purchase shows an error.
 
-## Mandatory IAP smoke test (TestFlight on iPhone)
+## Before Archive (Mac) — do in order
 
-1. [ ] Pricing → **Get Started** on **Premium Monthly**
-2. [ ] StoreKit sheet appears (not “Invalid API key” / hang)
-3. Do **not** resubmit until this works
+```bash
+cd ~/Projects/tentacled-stream-vibe-live-3
+git pull origin cursor/fix-asc-iap-native-1c89
 
-## Screenshots
+# Must show three lines; IOS must be appl_
+grep '^VITE_REVENUECAT' .env.local | sed 's/=.*/=…/'
 
-Upload current **iPhone** screenshots (6.5"): Home, Discover, Pricing, Live.
+# This FAILS if appl_ is missing — do not Archive until it passes
+npm run build:ios && npx cap sync ios
+npx cap open ios
+```
 
-## Resolution Center
+1. [ ] Xcode Build = **20**
+2. [ ] TestFlight: Pricing → Premium Monthly → **StoreKit sheet** (no error)
+3. [ ] ASC: Paid Apps Agreement **Active**
+4. [ ] ASC: products **Cleared for Sale** + attached to version
+5. [ ] Paste `docs/ASC_RESOLUTION_CENTER_REPLY.md`
 
-Paste from [ASC_RESOLUTION_CENTER_REPLY.md](./ASC_RESOLUTION_CENTER_REPLY.md).
+**Do not submit until step 2 works on a real iPhone TestFlight build.**

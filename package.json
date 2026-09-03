@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:ios": "node scripts/verify-ios-iap-env.mjs && vite build",
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
     "test": "vitest run",
@@ -14,6 +15,7 @@
     "typecheck": "tsc -p ./jsconfig.json",
     "preview": "vite preview",
     "cap:sync": "npm run build && npx cap sync",
+    "cap:sync:ios": "npm run build:ios && npx cap sync ios",
     "cap:open:ios": "npx cap open ios",
     "cap:open:android": "npx cap open android"
   },
