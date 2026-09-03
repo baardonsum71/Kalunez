@@ -1,8 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { Crown, Music, Download, Zap, CheckCircle2, Loader2, ExternalLink, Settings2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
-import { getConfiguredPlans, purchasePlan, openSubscriptionManagement } from '@/lib/revenuecat';
+import {
+  getConfiguredPlans,
+  getAvailableStoreProductIds,
+  isBillingConfigured,
+  isPurchaseCancelled,
+  purchasePlan,
+  openSubscriptionManagement,
+} from '@/lib/revenuecat';
+
+const UI_PURCHASE_TIMEOUT_MS = 25000;
+const PRO_PLAN_ID = 'pro_monthly_subscription';
 
 const PRO_FEATURES = [
   { icon: Music, label: 'High-Quality Audio', description: '320kbps lossless streaming' },
@@ -18,13 +29,53 @@ export default function ProSubscription() {
   const [error, setError] = useState('');
   const [manageLoading, setManageLoading] = useState(false);
   const [manageError, setManageError] = useState('');
+  const [productReady, setProductReady] = useState(!Capacitor.isNativePlatform());
+  const purchaseWatchdogRef = useRef(null);
 
-  const proPlan = getConfiguredPlans().find(p => p.id === 'pro_monthly_subscription');
+  const proPlan = getConfiguredPlans().find((p) => p.id === PRO_PLAN_ID);
+  const billingReady = isBillingConfigured();
+  const isNative = Capacitor.isNativePlatform();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('success')) setSuccess(true);
     if (params.get('canceled')) setError('Checkout was canceled.');
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function preflight() {
+      if (!isNative || !billingReady || !proPlan?.id) {
+        setProductReady(true);
+        return;
+      }
+      try {
+        const ids = await getAvailableStoreProductIds([proPlan.id]);
+        if (cancelled) return;
+        const ok = ids.includes(proPlan.id);
+        setProductReady(ok);
+        if (!ok) {
+          setError(
+            'App Store product for Pro is not available. Confirm it is Cleared for Sale, linked in RevenueCat, and the Paid Apps Agreement is active — then retry.'
+          );
+        }
+      } catch {
+        if (!cancelled) {
+          setProductReady(false);
+          setError('Could not reach the App Store to load products. Check your network and try again.');
+        }
+      }
+    }
+
+    preflight();
+    return () => {
+      cancelled = true;
+    };
+  }, [isNative, billingReady, proPlan?.id]);
+
+  useEffect(() => () => {
+    if (purchaseWatchdogRef.current) clearTimeout(purchaseWatchdogRef.current);
   }, []);
 
   const handleCheckout = async (planId) => {
@@ -33,18 +84,57 @@ export default function ProSubscription() {
       return;
     }
     if (!planId) {
-      setError('Subscription plan is not configured. Add VITE_REVENUECAT_PUBLIC_KEY to .env.local');
+      setError('Subscription plan is not configured.');
+      return;
+    }
+    if (!billingReady) {
+      setError('Checkout is not configured yet for this platform. Add the RevenueCat public key for iOS.');
+      return;
+    }
+    if (isNative && !productReady) {
+      setError(
+        'Pro is not available from the App Store right now. Confirm Cleared for Sale + RevenueCat Offering, then tap Subscribe again.'
+      );
       return;
     }
 
     setLoading(true);
     setError('');
+    if (purchaseWatchdogRef.current) clearTimeout(purchaseWatchdogRef.current);
+    purchaseWatchdogRef.current = setTimeout(() => {
+      setLoading((current) => {
+        if (current) {
+          setError(
+            'App Store payment sheet did not appear in time. Check your network, confirm products are Cleared for Sale, then try again.'
+          );
+          return false;
+        }
+        return current;
+      });
+    }, UI_PURCHASE_TIMEOUT_MS);
+
     try {
       await purchasePlan(planId);
       setSuccess(true);
+      try {
+        if (isNative) {
+          const { Haptics, ImpactStyle } = await import('@capacitor/haptics');
+          await Haptics.impact({ style: ImpactStyle.Medium });
+        }
+      } catch {
+        // Optional.
+      }
     } catch (err) {
-      setError(err.message || 'Failed to start checkout');
+      if (isPurchaseCancelled(err) || err?.userCancelled) {
+        setError('Purchase canceled.');
+      } else {
+        setError(err.message || 'Failed to start checkout. Try again.');
+      }
     } finally {
+      if (purchaseWatchdogRef.current) {
+        clearTimeout(purchaseWatchdogRef.current);
+        purchaseWatchdogRef.current = null;
+      }
       setLoading(false);
     }
   };
@@ -118,9 +208,9 @@ export default function ProSubscription() {
             </p>
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 gap-12 my-16">
+          <div className="grid md:grid-cols-2 gap-8 md:gap-12 my-10 md:my-16 items-start">
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-white mb-6">What's Included</h2>
+              <h2 className="text-2xl font-bold text-white mb-6">What&apos;s Included</h2>
               {PRO_FEATURES.map(({ icon: Icon, label, description }) => (
                 <div key={label} className="flex gap-4">
                   <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center shrink-0">
@@ -136,16 +226,18 @@ export default function ProSubscription() {
 
             <div className="flex items-center">
               <div className="w-full bg-gradient-to-br from-cyan-900/30 to-teal-900/20 border border-cyan-500/20 rounded-2xl p-8 text-center">
-                <div className="text-5xl font-bold text-white mb-2">{proPlan?.price || '$9.99'}</div>
+                <div className="text-5xl font-bold text-white mb-2">{proPlan?.price || '99 kr'}</div>
                 <p className="text-muted-foreground mb-6">per month</p>
                 <button
                   type="button"
                   onClick={() => handleCheckout(proPlan?.id)}
                   disabled={loading || !proPlan?.id}
-                  className="w-full gradient-bg text-white py-3 rounded-xl font-bold mb-4 hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full gradient-bg text-white py-3 rounded-xl font-bold mb-4 hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2 touch-manipulation"
                 >
                   {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {loading ? 'Processing...' : 'Subscribe Now'}
+                  {loading
+                    ? (isNative ? 'Opening App Store…' : 'Processing…')
+                    : (isNative && !productReady ? 'Retry Subscribe' : 'Subscribe Now')}
                 </button>
                 <p className="text-muted-foreground text-xs mb-4">Cancel anytime. Secure payment via RevenueCat.</p>
                 <Link to="/pricing" className="text-purple-400 text-sm hover:underline">

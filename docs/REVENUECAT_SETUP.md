@@ -34,9 +34,22 @@ For each plan in `src/lib/revenuecat.js` (`pro_monthly_subscription`, `premium_m
 
 **Required for the in-app "Manage / Cancel Subscription" button:** under Web Billing settings, configure your **Stripe Customer Portal URL** (or use RevenueCat's hosted Web Billing Customer Portal if you're on RevenueCat Billing instead of Stripe Billing). Without this, `customerInfo.managementURL` will be `null` and the cancel button will show an error instead of opening a portal.
 
-## 6. Get your Public API Key
+## 6. Get your Public API Keys (three different ones)
 
-**Project → API Keys → Public SDK Key (Web Billing)** → this is `VITE_REVENUECAT_PUBLIC_KEY`.
+RevenueCat shows **separate** public keys per platform. Mixing them causes:
+
+> `Invalid API key. Use your Web Billing API key.`
+
+| Env var | Prefix | Where you copy it |
+|---------|--------|-------------------|
+| `VITE_REVENUECAT_PUBLIC_KEY` | `rcb_…` | **Web Billing** app → Public API key |
+| `VITE_REVENUECAT_IOS_PUBLIC_KEY` | `appl_…` | **iOS** app → Public API key |
+| `VITE_REVENUECAT_ANDROID_PUBLIC_KEY` | `goog_…` | **Android** app → Public API key |
+
+In `.env.local` keep **all three on separate lines**. Never put `appl_` into `VITE_REVENUECAT_PUBLIC_KEY`.
+
+- Safari / kalunez.com → uses `rcb_`
+- TestFlight / Xcode iOS app → uses `appl_` (must rebuild after changing `.env.local`)
 
 ## 7. Configure the webhook
 
