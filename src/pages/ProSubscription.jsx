@@ -30,6 +30,7 @@ export default function ProSubscription() {
   const [manageLoading, setManageLoading] = useState(false);
   const [manageError, setManageError] = useState('');
   const [productReady, setProductReady] = useState(!Capacitor.isNativePlatform());
+  const [preflightDone, setPreflightDone] = useState(!Capacitor.isNativePlatform());
   const purchaseWatchdogRef = useRef(null);
 
   const proPlan = getConfiguredPlans().find((p) => p.id === PRO_PLAN_ID);
@@ -48,6 +49,7 @@ export default function ProSubscription() {
     async function preflight() {
       if (!isNative || !billingReady || !proPlan?.id) {
         setProductReady(true);
+        setPreflightDone(true);
         return;
       }
       try {
@@ -56,15 +58,15 @@ export default function ProSubscription() {
         const ok = ids.includes(proPlan.id);
         setProductReady(ok);
         if (!ok) {
-          setError(
-            'App Store product for Pro is not available. Confirm it is Cleared for Sale, linked in RevenueCat, and the Paid Apps Agreement is active — then retry.'
-          );
+          setError('App Store product for Pro is not available yet. Please try again in a moment.');
         }
       } catch {
         if (!cancelled) {
           setProductReady(false);
           setError('Could not reach the App Store to load products. Check your network and try again.');
         }
+      } finally {
+        if (!cancelled) setPreflightDone(true);
       }
     }
 
@@ -91,10 +93,12 @@ export default function ProSubscription() {
       setError('Checkout is not configured yet for this platform. Add the RevenueCat public key for iOS.');
       return;
     }
+    if (isNative && !preflightDone) {
+      setError('Still loading App Store products. Wait a moment, then try again.');
+      return;
+    }
     if (isNative && !productReady) {
-      setError(
-        'Pro is not available from the App Store right now. Confirm Cleared for Sale + RevenueCat Offering, then tap Subscribe again.'
-      );
+      setError('Pro is not available from the App Store right now. Please try again in a moment.');
       return;
     }
 
@@ -104,9 +108,7 @@ export default function ProSubscription() {
     purchaseWatchdogRef.current = setTimeout(() => {
       setLoading((current) => {
         if (current) {
-          setError(
-            'App Store payment sheet did not appear in time. Check your network, confirm products are Cleared for Sale, then try again.'
-          );
+          setError('The App Store payment sheet did not open in time. Check your network and try again.');
           return false;
         }
         return current;
@@ -231,13 +233,15 @@ export default function ProSubscription() {
                 <button
                   type="button"
                   onClick={() => handleCheckout(proPlan?.id)}
-                  disabled={loading || !proPlan?.id}
+                  disabled={loading || !proPlan?.id || (isNative && !preflightDone)}
                   className="w-full gradient-bg text-white py-3 rounded-xl font-bold mb-4 hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2 touch-manipulation"
                 >
-                  {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {(loading || (isNative && !preflightDone)) && <Loader2 className="w-4 h-4 animate-spin" />}
                   {loading
                     ? (isNative ? 'Opening App Store…' : 'Processing…')
-                    : (isNative && !productReady ? 'Retry Subscribe' : 'Subscribe Now')}
+                    : (isNative && !preflightDone
+                      ? 'Loading App Store…'
+                      : (isNative && !productReady ? 'Retry Subscribe' : 'Subscribe Now'))}
                 </button>
                 <p className="text-muted-foreground text-xs mb-4">Cancel anytime. Secure payment via RevenueCat.</p>
                 <Link to="/pricing" className="text-purple-400 text-sm hover:underline">

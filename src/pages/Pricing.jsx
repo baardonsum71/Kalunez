@@ -38,7 +38,7 @@ export default function Pricing() {
           setStoreReadyIds(new Set(ids));
           if (!ids.length) {
             setError(
-              'App Store products are not available yet. Confirm they are Cleared for Sale, linked in RevenueCat, and the Paid Apps Agreement is active — then retry.'
+              'App Store products are not available yet. Please try again in a moment.'
             );
           }
         }
@@ -75,9 +75,15 @@ export default function Pricing() {
       navigateToLogin();
       return;
     }
+    // Never start StoreKit while products are still loading — that caused
+    // "Checking…" + payment-sheet timeout at the same time for App Review.
+    if (isNative && !preflightDone) {
+      setError('Still loading App Store products. Wait a moment, then try again.');
+      return;
+    }
     if (isNative && storeReadyIds && !storeReadyIds.has(plan.id)) {
       setError(
-        `"${plan.name}" is not available from the App Store right now. Confirm the product is Cleared for Sale and linked in RevenueCat Offerings, then retry.`
+        `"${plan.name}" is not available from the App Store right now. Please try again in a moment.`
       );
       return;
     }
@@ -88,7 +94,7 @@ export default function Pricing() {
       setLoadingId((current) => {
         if (current === plan.id) {
           setError(
-            'App Store payment sheet did not appear in time. Check your network, confirm products are Cleared for Sale, then tap Get Started again.'
+            'The App Store payment sheet did not open in time. Check your network and try again.'
           );
           return null;
         }
@@ -169,9 +175,10 @@ export default function Pricing() {
       <div className="max-w-lg mx-auto px-4 pb-24">
         {/* Single column on device — avoids crowded 2-up grids when Review opens iPhone binary on iPad. */}
         <div className="grid grid-cols-1 gap-6">
-          {plans.map((plan) => {
-            const productReady = !isNative || !storeReadyIds || storeReadyIds.has(plan.id);
+          {[...plans].sort((a, b) => Number(b.popular) - Number(a.popular)).map((plan) => {
+            const productReady = !isNative || !preflightDone || !storeReadyIds || storeReadyIds.has(plan.id);
             const busy = loadingId === plan.id;
+            const waitingStore = isNative && !preflightDone;
             const featurePreview = plan.features.slice(0, isNative ? 3 : plan.features.length);
             return (
               <div
@@ -209,17 +216,19 @@ export default function Pricing() {
                 <button
                   type="button"
                   onClick={() => handleSubscribe(plan)}
-                  disabled={busy}
+                  disabled={busy || waitingStore}
                   className={`w-full py-4 rounded-xl font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 touch-manipulation min-h-12 ${
                     plan.popular ? 'bg-gradient-to-r from-purple-500 to-cyan-500' : 'gradient-bg'
                   }`}
                 >
-                  {busy && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {(busy || waitingStore) && <Loader2 className="w-4 h-4 animate-spin" />}
                   {busy
                     ? 'Opening App Store…'
-                    : !productReady
-                      ? 'Retry Get Started'
-                      : 'Get Started'}
+                    : waitingStore
+                      ? 'Loading App Store…'
+                      : !productReady
+                        ? 'Retry Get Started'
+                        : 'Get Started'}
                 </button>
               </div>
             );
