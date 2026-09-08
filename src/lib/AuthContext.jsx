@@ -16,7 +16,10 @@ import { auth, db } from '@/api/firebaseClient';
 const AuthContext = createContext();
 
 async function fetchProfile(userId) {
-  const snap = await getDoc(doc(db, 'profiles', userId));
+  const snap = await Promise.race([
+    getDoc(doc(db, 'profiles', userId)),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('profile timeout')), 8000)),
+  ]);
   if (!snap.exists()) return null;
   return { id: snap.id, ...snap.data() };
 }
@@ -25,7 +28,13 @@ async function fetchProfile(userId) {
 async function ensureProfile(authUser, extras = {}) {
   if (!authUser?.uid) return null;
 
-  let profile = await fetchProfile(authUser.uid);
+  let profile = null;
+  try {
+    profile = await fetchProfile(authUser.uid);
+  } catch {
+    // Firestore timeout / offline — allow app to open without profile.
+    return null;
+  }
   if (profile) return profile;
 
   const fullName =
@@ -103,19 +112,26 @@ export const AuthProvider = ({ children }) => {
       // eslint-disable-next-line no-console
       console.warn('[Auth] Startup timed out — continuing without session');
       finish();
-    }, 12000);
+    }, 8000);
 
-    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
-      loadUser(firebaseUser)
-        .catch((err) => setAuthError({ type: 'unknown', message: err.message }))
-        .finally(() => {
-          clearTimeout(watchdog);
-          finish();
-        });
-    });
+    let unsub = () => {};
+    try {
+      unsub = onAuthStateChanged(auth, (firebaseUser) => {
+        loadUser(firebaseUser)
+          .catch((err) => setAuthError({ type: 'unknown', message: err.message }))
+          .finally(() => {
+            clearTimeout(watchdog);
+            finish();
+          });
+      });
+    } catch (err) {
+      setAuthError({ type: 'unknown', message: err?.message || 'Auth failed to start' });
+      clearTimeout(watchdog);
+      finish();
+    }
     return () => {
       clearTimeout(watchdog);
-      unsub();
+      try { unsub(); } catch { /* ignore */ }
     };
   }, [loadUser]);
 
