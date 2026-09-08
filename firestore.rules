@@ -1,0 +1,84 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    // Profiles: public read for artist pages; users write their own doc.
+    match /profiles/{userId} {
+      allow read: if true;
+      allow create, update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+    }
+
+    // Public catalog + authenticated writes (tighten per field later).
+    match /tracks/{id} {
+      allow read: if true;
+      allow write: if signedIn();
+    }
+    match /live_streams/{id} {
+      allow read: if true;
+      allow write: if signedIn();
+    }
+    match /follows/{id} {
+      allow read: if true;
+      allow write: if signedIn();
+    }
+    match /playlists/{id} {
+      allow read: if signedIn();
+      allow write: if signedIn();
+    }
+    match /comments/{id} {
+      allow read: if true;
+      allow write: if signedIn();
+    }
+    match /notifications/{id} {
+      allow read, write: if signedIn();
+    }
+    match /chat_messages/{id} {
+      allow read, write: if signedIn();
+    }
+    match /messages/{id} {
+      allow read, write: if signedIn();
+    }
+    match /activities/{id} {
+      allow read: if true;
+      allow write: if signedIn();
+    }
+    match /analytics_events/{id} {
+      allow create: if signedIn();
+      allow read: if signedIn();
+    }
+    match /tips/{id} {
+      allow read: if signedIn();
+      allow write: if false; // server / Cloud Functions only
+    }
+    match /subscriptions/{id} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+    match /track_drafts/{id} {
+      allow read, write: if signedIn();
+    }
+    match /collab_feedback/{id} {
+      allow read, write: if signedIn();
+    }
+    match /artist_accounts/{id} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+    match /tickets/{id} {
+      allow read: if signedIn();
+      allow write: if signedIn();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

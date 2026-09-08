@@ -1,100 +1,200 @@
-import { supabase } from '@/api/supabaseClient';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  orderBy,
+  limit as fsLimit,
+  onSnapshot,
+  serverTimestamp,
+} from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '@/api/firebaseClient';
 
 /**
- * Thin data-access helpers that mirror the shape of the old Base44
- * `entities.X.list/filter/create/update/delete/subscribe` API, so page
- * components needed minimal changes during the Supabase migration.
+ * Firestore data-access helpers — same shape as the old Base44 / Supabase
+ * `listRows` / `filterRows` / `createRow` / `updateRow` / `deleteRow` / `subscribeRows` API.
  *
- * `sort` uses the same convention as Base44: a field name, optionally
- * prefixed with `-` for descending order (e.g. '-created_date').
+ * Collection names match former Postgres table names (profiles, tracks, …).
  */
 
-function applySort(query, sort) {
-  if (!sort) return query;
+function sortField(sort) {
+  if (!sort) return null;
   const desc = sort.startsWith('-');
   const field = desc ? sort.slice(1) : sort;
-  // created_date/updated_date were Base44 field names; our tables use created_at/updated_at.
-  const column = field === 'created_date' ? 'created_at' : field === 'updated_date' ? 'updated_at' : field;
-  return query.order(column, { ascending: !desc });
+  const column =
+    field === 'created_date' ? 'created_at'
+      : field === 'updated_date' ? 'updated_at'
+        : field;
+  return { column, desc };
 }
 
-// Adds created_date/updated_date aliases so existing render code that reads
-// Base44-style field names keeps working without touching every component.
 function withDateAliases(row) {
   if (!row || typeof row !== 'object') return row;
+  const created =
+    row.created_at?.toDate?.()?.toISOString?.()
+    || row.created_at
+    || row.created_date;
+  const updated =
+    row.updated_at?.toDate?.()?.toISOString?.()
+    || row.updated_at
+    || row.updated_date;
   return {
     ...row,
-    ...(row.created_at !== undefined ? { created_date: row.created_at } : {}),
-    ...(row.updated_at !== undefined ? { updated_date: row.updated_at } : {}),
+    ...(created !== undefined ? { created_at: created, created_date: created } : {}),
+    ...(updated !== undefined ? { updated_at: updated, updated_date: updated } : {}),
   };
 }
 
+function rowFromSnap(snap) {
+  if (!snap.exists()) return null;
+  return withDateAliases({ id: snap.id, ...snap.data() });
+}
+
 export async function listRows(table, sort, limit) {
-  let query = supabase.from(table).select('*');
-  query = applySort(query, sort);
-  if (limit) query = query.limit(limit);
-  const { data, error } = await query;
-  if (error) throw error;
-  return (data || []).map(withDateAliases);
+  const constraints = [];
+  const s = sortField(sort);
+  if (s) constraints.push(orderBy(s.column, s.desc ? 'desc' : 'asc'));
+  if (limit) constraints.push(fsLimit(limit));
+  const q = constraints.length
+    ? query(collection(db, table), ...constraints)
+    : collection(db, table);
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => withDateAliases({ id: d.id, ...d.data() }));
 }
 
 export async function filterRows(table, criteria = {}, sort, limit) {
-  let query = supabase.from(table).select('*').match(criteria);
-  query = applySort(query, sort);
-  if (limit) query = query.limit(limit);
-  const { data, error } = await query;
-  if (error) throw error;
-  return (data || []).map(withDateAliases);
+  const constraints = [];
+  for (const [key, value] of Object.entries(criteria || {})) {
+    if (value === undefined) continue;
+    constraints.push(where(key, '==', value));
+  }
+  const s = sortField(sort);
+  if (s) constraints.push(orderBy(s.column, s.desc ? 'desc' : 'asc'));
+  if (limit) constraints.push(fsLimit(limit));
+
+  let q;
+  try {
+    q = constraints.length
+      ? query(collection(db, table), ...constraints)
+      : collection(db, table);
+  } catch (err) {
+    throw err;
+  }
+
+  try {
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => withDateAliases({ id: d.id, ...d.data() }));
+  } catch (err) {
+    // Composite index missing: fall back to equality filter only, sort in memory.
+    if (String(err?.message || '').includes('index') && Object.keys(criteria || {}).length) {
+      const eqOnly = Object.entries(criteria)
+        .filter(([, v]) => v !== undefined)
+        .map(([k, v]) => where(k, '==', v));
+      const snap = await getDocs(query(collection(db, table), ...eqOnly));
+      let rows = snap.docs.map((d) => withDateAliases({ id: d.id, ...d.data() }));
+      if (s) {
+        rows = rows.sort((a, b) => {
+          const av = a[s.column];
+          const bv = b[s.column];
+          if (av === bv) return 0;
+          if (av == null) return 1;
+          if (bv == null) return -1;
+          const cmp = av > bv ? 1 : -1;
+          return s.desc ? -cmp : cmp;
+        });
+      }
+      if (limit) rows = rows.slice(0, limit);
+      return rows;
+    }
+    throw err;
+  }
 }
 
 export async function createRow(table, data) {
-  const { data: row, error } = await supabase.from(table).insert(data).select().single();
-  if (error) throw error;
-  return withDateAliases(row);
+  const payload = {
+    ...data,
+    created_at: data.created_at || serverTimestamp(),
+    updated_at: data.updated_at || serverTimestamp(),
+  };
+  // Prefer explicit id (e.g. profiles use auth uid).
+  if (data.id) {
+    const id = data.id;
+    const { id: _omit, ...rest } = payload;
+    await setDoc(doc(db, table, id), { ...rest, id }, { merge: true });
+    const snap = await getDoc(doc(db, table, id));
+    return rowFromSnap(snap);
+  }
+  const refDoc = await addDoc(collection(db, table), payload);
+  const snap = await getDoc(refDoc);
+  return rowFromSnap(snap);
 }
 
 export async function updateRow(table, id, data) {
-  const { data: row, error } = await supabase.from(table).update(data).eq('id', id).select().single();
-  if (error) throw error;
-  return withDateAliases(row);
+  const payload = {
+    ...data,
+    updated_at: serverTimestamp(),
+  };
+  delete payload.id;
+  await updateDoc(doc(db, table, id), payload);
+  const snap = await getDoc(doc(db, table, id));
+  return rowFromSnap(snap);
 }
 
 export async function deleteRow(table, id) {
-  const { error } = await supabase.from(table).delete().eq('id', id);
-  if (error) throw error;
+  await deleteDoc(doc(db, table, id));
   return true;
 }
 
 /**
- * Subscribes to Postgres changes for `table`, optionally filtered by an
- * equality match (e.g. { column: 'stream_id', value: streamId }).
- * Returns an unsubscribe function.
+ * Live query. Callback receives `{ eventType, new: row, old: row }` shaped
+ * loosely like the old Supabase realtime payload for chat/message UIs.
  */
 export function subscribeRows(table, callback, filter) {
-  const channelName = filter ? `${table}:${filter.column}:${filter.value}` : `${table}:all`;
-  let changesConfig = { event: '*', schema: 'public', table };
-  if (filter) {
-    changesConfig = { ...changesConfig, filter: `${filter.column}=eq.${filter.value}` };
+  const constraints = [];
+  if (filter?.column) {
+    constraints.push(where(filter.column, '==', filter.value));
   }
+  const q = constraints.length
+    ? query(collection(db, table), ...constraints)
+    : collection(db, table);
 
-  const channel = supabase
-    .channel(channelName)
-    .on('postgres_changes', changesConfig, (payload) => callback(payload))
-    .subscribe();
+  const unsub = onSnapshot(q, (snap) => {
+    snap.docChanges().forEach((change) => {
+      const row = withDateAliases({ id: change.doc.id, ...change.doc.data() });
+      const eventType =
+        change.type === 'added' ? 'INSERT'
+          : change.type === 'modified' ? 'UPDATE'
+            : 'DELETE';
+      callback({
+        eventType,
+        new: change.type === 'removed' ? null : row,
+        old: change.type === 'added' ? null : row,
+        // Supabase-shaped aliases some components may read:
+        event: eventType,
+        newRecord: change.type === 'removed' ? null : row,
+        oldRecord: change.type === 'added' ? null : row,
+      });
+    });
+  });
 
-  return () => {
-    supabase.removeChannel(channel);
-  };
+  return unsub;
 }
 
 export async function uploadFile(bucket, file, pathPrefix = '') {
   const ext = file.name.split('.').pop();
-  const path = `${pathPrefix}${crypto.randomUUID()}.${ext}`;
-  const { error } = await supabase.storage.from(bucket).upload(path, file, {
+  const path = `${bucket}/${pathPrefix}${crypto.randomUUID()}.${ext}`;
+  const storageRef = ref(storage, path);
+  await uploadBytes(storageRef, file, {
     cacheControl: '3600',
-    upsert: false,
+    contentType: file.type || undefined,
   });
-  if (error) throw error;
-  const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-  return { file_url: data.publicUrl };
+  const file_url = await getDownloadURL(storageRef);
+  return { file_url };
 }

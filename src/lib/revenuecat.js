@@ -1,5 +1,7 @@
 import { Capacitor } from '@capacitor/core';
-import { supabase } from '@/api/supabaseClient';
+import { auth } from '@/api/firebaseClient';
+import { createRow, filterRows } from '@/lib/db';
+import { invokeBackend } from '@/lib/backendFunctions';
 
 // Product/package identifiers must match what you configure in RevenueCat
 // (Project > Products / Offerings). See docs/REVENUECAT_SETUP.md.
@@ -184,12 +186,7 @@ async function getPurchases() {
     throw new Error(`RevenueCat is not configured. Add ${getMissingKeyVarName()} to .env.local — see docs/REVENUECAT_SETUP.md`);
   }
 
-  const { data } = await withTimeout(
-    supabase.auth.getUser(),
-    12000,
-    'Sign-in check timed out. Close the app, sign in again, then retry purchase.'
-  );
-  const appUserId = data?.user?.id;
+  const appUserId = auth.currentUser?.uid;
   if (!appUserId) throw new Error('You must be signed in to do this.');
 
   if (IS_NATIVE) {
@@ -416,8 +413,7 @@ export async function purchaseEventTicket(eventId, ticketProductId, amountCents)
   const productId = tier.id;
   const chargedCents = tier.price_cents;
 
-  const { data: authData } = await supabase.auth.getUser();
-  const email = authData?.user?.email;
+  const email = auth.currentUser?.email;
   if (!email) throw new Error('You must be signed in to buy a ticket.');
 
   try {
@@ -436,23 +432,14 @@ export async function purchaseEventTicket(eventId, ticketProductId, amountCents)
     throw wrapped;
   }
 
-  const { data: existing } = await supabase
-    .from('tickets')
-    .select('id')
-    .eq('event_id', eventId)
-    .eq('user_email', email)
-    .maybeSingle();
-
-  if (!existing) {
-    const { error } = await supabase.from('tickets').insert({
+  const existing = await filterRows('tickets', { event_id: eventId, user_email: email }, null, 1);
+  if (!existing.length) {
+    await createRow('tickets', {
       event_id: eventId,
       user_email: email,
       amount_cents: amountCents || chargedCents,
       ticket_product_id: productId,
     });
-    if (error && !String(error.message || '').includes('duplicate')) {
-      throw error;
-    }
   }
 
   return { eventId, ticketProductId: productId, amount_cents: amountCents || chargedCents };
@@ -460,19 +447,16 @@ export async function purchaseEventTicket(eventId, ticketProductId, amountCents)
 
 export async function userHasTicket(eventId, userEmail) {
   if (!eventId || !userEmail) return false;
-  const { data, error } = await supabase
-    .from('tickets')
-    .select('id')
-    .eq('event_id', eventId)
-    .eq('user_email', userEmail)
-    .maybeSingle();
-  if (error) return false;
-  return !!data;
+  try {
+    const rows = await filterRows('tickets', { event_id: eventId, user_email: userEmail }, null, 1);
+    return rows.length > 0;
+  } catch {
+    return false;
+  }
 }
 
 export async function startConnectOnboarding(artistName) {
-  const { data, error } = await supabase.functions.invoke('createConnectAccount', { body: { artistName } });
-  if (error) throw error;
+  const data = await invokeBackend('createConnectAccount', { artistName });
   const url = data?.url;
   if (!url) throw new Error(data?.error || 'Could not start Connect onboarding');
 
@@ -485,9 +469,7 @@ export async function startConnectOnboarding(artistName) {
 }
 
 export async function getArtistAccount(type = 'status') {
-  const { data, error } = await supabase.functions.invoke('getArtistAccount', { body: { type } });
-  if (error) throw error;
-  return data;
+  return invokeBackend('getArtistAccount', { type });
 }
 
 export function formatCents(cents, currency = 'usd') {

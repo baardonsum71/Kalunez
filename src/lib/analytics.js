@@ -1,8 +1,8 @@
 import posthog from 'posthog-js';
 import { Capacitor } from '@capacitor/core';
-import { supabase } from '@/api/supabaseClient';
 import { createRow } from '@/lib/db';
 import { hasAnalyticsConsent } from '@/lib/cookieConsent';
+import { invokeBackend } from '@/lib/backendFunctions';
 
 const KEY_EVENTS = new Set([
   'page_view',
@@ -174,15 +174,11 @@ export const AnalyticsEvents = {
 };
 
 export async function getPlatformAnalytics() {
-  const { data, error } = await supabase.functions.invoke('getPlatformAnalytics', { body: {} });
-  if (error) throw error;
-  return data;
+  return invokeBackend('getPlatformAnalytics', {});
 }
 
 export async function getArtistAnalytics(days = 30) {
-  const { data, error } = await supabase.functions.invoke('getArtistAnalytics', { body: { days } });
-  if (error) throw error;
-  return data;
+  return invokeBackend('getArtistAnalytics', { days });
 }
 
 export function formatAnalyticsCurrency(cents) {

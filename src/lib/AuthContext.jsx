@@ -1,60 +1,71 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { supabase } from '@/api/supabaseClient';
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
+  sendPasswordResetEmail,
+  signOut,
+  OAuthProvider,
+  signInWithPopup,
+} from 'firebase/auth';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from '@/api/firebaseClient';
 
 const AuthContext = createContext();
 
 async function fetchProfile(userId) {
-  const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
-  if (error) return null;
-  return data;
+  const snap = await getDoc(doc(db, 'profiles', userId));
+  if (!snap.exists()) return null;
+  return { id: snap.id, ...snap.data() };
 }
 
-/** Creates a listener profile if the DB trigger missed it (common on first signup). */
-async function ensureProfile(authUser) {
-  if (!authUser?.id) return null;
+/** Creates a listener/artist profile if missing (first signup). */
+async function ensureProfile(authUser, extras = {}) {
+  if (!authUser?.uid) return null;
 
-  let profile = await fetchProfile(authUser.id);
+  let profile = await fetchProfile(authUser.uid);
   if (profile) return profile;
 
   const fullName =
-    authUser.user_metadata?.full_name ||
-    authUser.user_metadata?.name ||
-    authUser.email?.split('@')[0] ||
-    '';
-  const accountType = authUser.user_metadata?.account_type === 'artist' ? 'artist' : 'listener';
+    extras.full_name
+    || authUser.displayName
+    || authUser.email?.split('@')[0]
+    || '';
+  const accountType = extras.account_type === 'artist' ? 'artist' : 'listener';
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .upsert(
-      {
-        id: authUser.id,
-        email: authUser.email,
-        full_name: fullName,
-        account_type: accountType,
-      },
-      { onConflict: 'id' }
-    )
-    .select('*')
-    .maybeSingle();
+  const payload = {
+    id: authUser.uid,
+    email: authUser.email || '',
+    full_name: fullName,
+    account_type: accountType,
+    subscription_tier: 'free',
+    role: 'user',
+    created_at: serverTimestamp(),
+    updated_at: serverTimestamp(),
+  };
 
-  if (error) {
+  try {
+    await setDoc(doc(db, 'profiles', authUser.uid), payload, { merge: true });
+    profile = await fetchProfile(authUser.uid);
+    return profile;
+  } catch (err) {
     // eslint-disable-next-line no-console
-    console.error('ensureProfile failed:', error.message);
+    console.error('ensureProfile failed:', err?.message || err);
     return null;
   }
-  return data;
 }
 
 function mergeUser(authUser, profile) {
   if (!authUser) return null;
   return {
-    id: authUser.id,
+    id: authUser.uid,
     email: authUser.email,
-    full_name: profile?.full_name || authUser.user_metadata?.full_name || null,
+    full_name: profile?.full_name || authUser.displayName || null,
     subscription_tier: profile?.subscription_tier || 'free',
     role: profile?.role || 'user',
-    profile_picture_url: profile?.profile_picture_url || null,
+    profile_picture_url: profile?.profile_picture_url || authUser.photoURL || null,
     artist_name: profile?.artist_name || null,
     account_type: profile?.account_type || 'listener',
     bio: profile?.bio || null,
@@ -67,85 +78,63 @@ export const AuthProvider = ({ children }) => {
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const [authError, setAuthError] = useState(null);
 
-  const loadUser = useCallback(async (authUser) => {
+  const loadUser = useCallback(async (authUser, extras) => {
     if (!authUser) {
       setUser(null);
       setIsAuthenticated(false);
       return;
     }
-    const profile = await ensureProfile(authUser);
+    const profile = await ensureProfile(authUser, extras);
     setUser(mergeUser(authUser, profile));
     setIsAuthenticated(true);
   }, []);
 
   useEffect(() => {
-    let mounted = true;
-
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (!mounted) return;
-      if (error) {
-        setAuthError({ type: 'unknown', message: error.message });
-        setIsLoadingAuth(false);
-        return;
-      }
-      loadUser(session?.user || null).finally(() => {
-        if (mounted) setIsLoadingAuth(false);
-      });
+    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
+      loadUser(firebaseUser)
+        .catch((err) => setAuthError({ type: 'unknown', message: err.message }))
+        .finally(() => setIsLoadingAuth(false));
     });
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      loadUser(session?.user || null);
-    });
-
-    return () => {
-      mounted = false;
-      listener?.subscription?.unsubscribe();
-    };
+    return () => unsub();
   }, [loadUser]);
 
   const signInWithPassword = async (email, password) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
+    await signInWithEmailAndPassword(auth, email, password);
   };
 
   const signUpWithPassword = async (email, password, fullName, accountType = 'listener') => {
     const type = accountType === 'artist' ? 'artist' : 'listener';
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName || '',
-          account_type: type,
-        },
-      },
-    });
-    if (error) throw error;
-    // If email confirm is off, session exists immediately — ensure profile now.
-    if (data?.user) await ensureProfile({ ...data.user, email: data.user.email || email });
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    if (fullName) {
+      try {
+        await updateProfile(cred.user, { displayName: fullName });
+      } catch {
+        // Non-fatal.
+      }
+    }
+    await ensureProfile(cred.user, { full_name: fullName || '', account_type: type });
+    await loadUser(cred.user, { full_name: fullName || '', account_type: type });
   };
 
-  const signInWithApple = async (redirectTo) => {
-    // OAuth opens the system browser — blocked on native (Apple Guideline 4).
+  const signInWithApple = async () => {
+    // OAuth popup/system browser — blocked on native (Apple Guideline 4).
     if (Capacitor.isNativePlatform()) {
       throw new Error('Use email and password to sign in inside the app.');
     }
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'apple',
-      options: { redirectTo: redirectTo || window.location.origin },
-    });
-    if (error) throw error;
+    const provider = new OAuthProvider('apple.com');
+    provider.addScope('email');
+    provider.addScope('name');
+    await signInWithPopup(auth, provider);
   };
 
   const sendPasswordReset = async (email) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/login`,
+    await sendPasswordResetEmail(auth, email, {
+      url: `${window.location.origin}/login`,
     });
-    if (error) throw error;
   };
 
   const logout = async (shouldRedirect = true) => {
-    await supabase.auth.signOut();
+    await signOut(auth);
     setUser(null);
     setIsAuthenticated(false);
     if (shouldRedirect) {
@@ -155,7 +144,6 @@ export const AuthProvider = ({ children }) => {
 
   const navigateToLogin = (returnUrl) => {
     const redirect = returnUrl || window.location.pathname + window.location.search;
-    // Stay inside the Capacitor WebView (relative path) — do not open an external browser.
     window.location.assign(`/login?redirect=${encodeURIComponent(redirect)}`);
   };
 
@@ -165,8 +153,6 @@ export const AuthProvider = ({ children }) => {
         user,
         isAuthenticated,
         isLoadingAuth,
-        // Kept for backward compatibility with components that still read this flag;
-        // Supabase has no separate "app public settings" loading phase like Base44 did.
         isLoadingPublicSettings: false,
         authError,
         logout,
@@ -175,7 +161,7 @@ export const AuthProvider = ({ children }) => {
         signUpWithPassword,
         signInWithApple,
         sendPasswordReset,
-        refreshUser: () => supabase.auth.getUser().then(({ data }) => loadUser(data?.user || null)),
+        refreshUser: () => loadUser(auth.currentUser),
       }}
     >
       {children}

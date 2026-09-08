@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Settings as SettingsIcon, Trash2, AlertTriangle, Shield, ChevronRight, KeyRound, Eye, EyeOff, Star, Scale, Cookie, FileText, User, Camera, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { supabase } from '@/api/supabaseClient';
+import { EmailAuthProvider, reauthenticateWithCredential, updatePassword, deleteUser } from 'firebase/auth';
+import { auth } from '@/api/firebaseClient';
 import { useAuth } from '@/lib/AuthContext';
-import { uploadFile } from '@/lib/db';
+import { createRow, uploadFile } from '@/lib/db';
 import { CookieConsentSettings } from '@/components/CookieConsent';
 import LanguagePicker from '@/components/LanguagePicker';
 
@@ -48,15 +49,20 @@ export default function Settings() {
     const next = { ...profileForm, ...overrides };
     const accountType = next.account_type === 'artist' ? 'artist' : 'listener';
     const fullName = (next.full_name || user.full_name || '').trim();
-    return supabase.from('profiles').upsert({
-      id: user.id,
-      email: user.email,
-      full_name: fullName,
-      account_type: accountType,
-      artist_name: accountType === 'artist' ? (next.artist_name || '').trim() || fullName : null,
-      bio: (next.bio || '').trim() || null,
-      profile_picture_url: next.profile_picture_url || null,
-    });
+    try {
+      await createRow('profiles', {
+        id: user.id,
+        email: user.email,
+        full_name: fullName,
+        account_type: accountType,
+        artist_name: accountType === 'artist' ? (next.artist_name || '').trim() || fullName : null,
+        bio: (next.bio || '').trim() || null,
+        profile_picture_url: next.profile_picture_url || null,
+      });
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
   };
 
   const handleSaveProfile = async (e) => {
@@ -110,19 +116,30 @@ export default function Settings() {
     if (pwForm.next !== pwForm.confirm) return setPwError(t('settings.passwordMismatch'));
     if (pwForm.next.length < 8) return setPwError(t('settings.passwordShort'));
     setPwLoading(true);
-    const { error } = await supabase.auth.updateUser({ password: pwForm.next });
-    setPwLoading(false);
-    if (error) return setPwError(error.message);
-    setPwSuccess(true);
-    setPwForm({ current: '', next: '', confirm: '' });
-    setTimeout(() => { setChangingPassword(false); setPwSuccess(false); }, 2000);
+    try {
+      const current = auth.currentUser;
+      if (!current?.email) throw new Error('Not signed in');
+      if (pwForm.current) {
+        const cred = EmailAuthProvider.credential(current.email, pwForm.current);
+        await reauthenticateWithCredential(current, cred);
+      }
+      await updatePassword(current, pwForm.next);
+      setPwSuccess(true);
+      setPwForm({ current: '', next: '', confirm: '' });
+      setTimeout(() => { setChangingPassword(false); setPwSuccess(false); }, 2000);
+    } catch (err) {
+      setPwError(err.message || 'Could not change password');
+    } finally {
+      setPwLoading(false);
+    }
   };
 
   const handleDeleteAccount = async () => {
     setDeleting(true);
     try {
-      const { error } = await supabase.functions.invoke('deleteAccount', { body: {} });
-      if (error) throw error;
+      const current = auth.currentUser;
+      if (!current) throw new Error('Not signed in');
+      await deleteUser(current);
       await logout();
     } catch {
       setDeleting(false);

@@ -1,9 +1,7 @@
-import { supabase } from '@/api/supabaseClient';
+import { invokeBackend } from '@/lib/backendFunctions';
 
 async function invoke(name, body) {
-  const { data, error } = await supabase.functions.invoke(name, { body });
-  if (error) throw error;
-  return data;
+  return invokeBackend(name, body);
 }
 
 export async function getLiveKitCredentials(roomName, role, streamId) {
