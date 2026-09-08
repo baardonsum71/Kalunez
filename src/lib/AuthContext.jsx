@@ -90,12 +90,33 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
+    let settled = false;
+    const finish = () => {
+      if (!settled) {
+        settled = true;
+        setIsLoadingAuth(false);
+      }
+    };
+
+    // Never block the UI forever if Auth/Firestore is slow or offline (native spinner).
+    const watchdog = setTimeout(() => {
+      // eslint-disable-next-line no-console
+      console.warn('[Auth] Startup timed out — continuing without session');
+      finish();
+    }, 12000);
+
     const unsub = onAuthStateChanged(auth, (firebaseUser) => {
       loadUser(firebaseUser)
         .catch((err) => setAuthError({ type: 'unknown', message: err.message }))
-        .finally(() => setIsLoadingAuth(false));
+        .finally(() => {
+          clearTimeout(watchdog);
+          finish();
+        });
     });
-    return () => unsub();
+    return () => {
+      clearTimeout(watchdog);
+      unsub();
+    };
   }, [loadUser]);
 
   const signInWithPassword = async (email, password) => {
