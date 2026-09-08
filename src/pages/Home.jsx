@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
-import { Play, Radio, Music, Users, Heart, Tv2 } from 'lucide-react';
+import { Play, Radio, Music, Heart, Tv2 } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
 import { listRows, filterRows } from '@/lib/db';
 import { useAuth } from '@/lib/AuthContext';
 import TrackCard from '@/components/TrackCard';
@@ -9,7 +10,7 @@ import PullToRefresh from '@/components/PullToRefresh';
 
 function TrackSkeletonGrid({ count = 3 }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {Array(count).fill(0).map((_, i) => (
         <div key={i} className="bg-card rounded-xl overflow-hidden animate-pulse border border-border">
           <div className="aspect-square bg-secondary" />
@@ -23,14 +24,10 @@ function TrackSkeletonGrid({ count = 3 }) {
   );
 }
 
-function formatStat(n, cap = 500) {
-  if (n >= cap) return `${cap}+`;
-  return n.toLocaleString();
-}
-
 export default function Home() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const isNative = Capacitor.isNativePlatform();
 
   const { data: tracks = [], isLoading: tracksLoading } = useQuery({
     queryKey: ['featured-tracks'],
@@ -58,23 +55,6 @@ export default function Home() {
     staleTime: 60000,
   });
 
-  const { data: stats } = useQuery({
-    queryKey: ['platform-stats'],
-    queryFn: async () => {
-      const [allTracks, allStreams] = await Promise.all([
-        listRows('tracks', '-created_date', 500),
-        listRows('live_streams', '-created_date', 500),
-      ]);
-      const artists = new Set(allTracks.map(t => t.artist).filter(Boolean)).size;
-      return {
-        tracks: allTracks.length,
-        streams: allStreams.length,
-        artists,
-      };
-    },
-    staleTime: 300000,
-  });
-
   const handleRefresh = async () => {
     await queryClient.invalidateQueries();
   };
@@ -82,25 +62,21 @@ export default function Home() {
   return (
     <PullToRefresh onRefresh={handleRefresh}>
       <div className="hero-gradient min-h-screen">
-        {/* Hero — one composition: brand, headline, line, CTA, full-bleed visual */}
-        <section className="relative min-h-[100svh] flex items-end md:items-center overflow-hidden club-grain">
-          {/* CSS-only stage (no external Unsplash — Safari showed broken-image "?" when blocked). */}
+        <section className="relative min-h-[70svh] md:min-h-[85svh] flex items-end md:items-center overflow-hidden club-grain">
           <div
             className="absolute inset-0"
             style={{
               background: `
                 radial-gradient(ellipse 90% 60% at 75% 40%, rgba(255, 45, 149, 0.28), transparent 55%),
                 radial-gradient(ellipse 70% 50% at 15% 70%, rgba(200, 245, 66, 0.14), transparent 50%),
-                radial-gradient(ellipse 50% 40% at 60% 10%, rgba(120, 80, 255, 0.12), transparent 45%),
                 linear-gradient(165deg, #050507 0%, #0c0612 45%, #050507 100%)
               `,
             }}
             aria-hidden
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#050507] via-transparent to-[#050507]/50" aria-hidden />
-          <div className="hero-sweep" aria-hidden />
 
-          <div className="relative z-[2] w-full max-w-6xl mx-auto px-4 pt-[calc(6rem+var(--safe-top))] pb-16 md:pb-24">
+          <div className="relative z-[2] w-full max-w-6xl mx-auto px-4 pt-[calc(5rem+var(--safe-top))] pb-12 md:pb-20">
             <p className="font-display text-5xl sm:text-6xl md:text-8xl tracking-wide logo-gradient-text mb-4 md:mb-6">
               KALUNEZ
             </p>
@@ -118,76 +94,57 @@ export default function Home() {
               >
                 <Play className="w-5 h-5" /> Enter the stream
               </Link>
-              <Link
-                to="/go-live"
-                className="border border-white/25 bg-black/40 backdrop-blur-sm text-white px-8 py-3.5 rounded-xl font-semibold flex items-center gap-2 justify-center hover:border-[var(--lime)]/50 hover:bg-white/5 transition-colors text-sm"
-              >
-                <Tv2 className="w-5 h-5 text-[var(--magenta)]" /> Go Live
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        <section className="max-w-6xl mx-auto px-4 py-16 md:py-20">
-          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[rgba(255,45,149,0.18)] via-[#0a0a0f] to-[rgba(200,245,66,0.1)]">
-            <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-transparent" aria-hidden />
-            <div className="relative p-8 md:p-12 max-w-xl">
-              <span className="font-display text-sm tracking-[0.2em] text-[var(--lime)] mb-3 block">FOR ARTISTS</span>
-              <h2 className="font-display text-4xl md:text-5xl text-white mb-3 leading-none">PLAY THE ROOM. GET PAID.</h2>
-              <p className="text-white/70 mb-6 text-sm md:text-base">
-                Upload originals, schedule ticketed nights — your set, your audience, your cut.
-              </p>
-              <div className="flex gap-3 flex-wrap">
-                <Link to="/for-artists" className="gradient-bg px-5 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 transition-opacity">
-                  Artist tools
+              {!isNative && (
+                <Link
+                  to="/go-live"
+                  className="border border-white/25 bg-black/40 backdrop-blur-sm text-white px-8 py-3.5 rounded-xl font-semibold flex items-center gap-2 justify-center hover:border-[var(--lime)]/50 hover:bg-white/5 transition-colors text-sm"
+                >
+                  <Tv2 className="w-5 h-5 text-[var(--magenta)]" /> Go Live
                 </Link>
-                <Link to="/go-live" className="border border-white/25 text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 hover:border-[var(--magenta)]/50 transition-colors">
-                  <Radio className="w-4 h-4" /> Go Live
-                </Link>
-              </div>
+              )}
             </div>
           </div>
         </section>
 
         {(followingLoading || followingTracks.length > 0) && (
-          <section className="max-w-6xl mx-auto px-4 pb-16">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="font-display text-3xl text-white flex items-center gap-2 tracking-wide">
-                <Heart className="w-6 h-6 text-[var(--magenta)]" /> FOLLOWING
+          <section className="max-w-6xl mx-auto px-4 py-12">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-display text-2xl md:text-3xl text-white flex items-center gap-2 tracking-wide">
+                <Heart className="w-5 h-5 text-[var(--magenta)]" /> FOLLOWING
               </h2>
               <Link to="/discover" className="text-[var(--lime)] hover:opacity-80 text-sm font-semibold">Discover →</Link>
             </div>
             {followingLoading ? (
-              <TrackSkeletonGrid count={3} />
+              <TrackSkeletonGrid count={2} />
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {followingTracks.map(track => <TrackCard key={track.id} track={track} />)}
               </div>
             )}
           </section>
         )}
 
-        <section className="max-w-6xl mx-auto px-4 pb-16">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-display text-3xl text-white flex items-center gap-2 tracking-wide">
-              <Music className="w-6 h-6 text-[var(--lime)]" /> FEATURED
+        <section className="max-w-6xl mx-auto px-4 pb-12">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="font-display text-2xl md:text-3xl text-white flex items-center gap-2 tracking-wide">
+              <Music className="w-5 h-5 text-[var(--lime)]" /> FEATURED
             </h2>
             <Link to="/discover" className="text-[var(--lime)] hover:opacity-80 text-sm font-semibold">View all →</Link>
           </div>
           {tracksLoading ? (
-            <TrackSkeletonGrid count={3} />
+            <TrackSkeletonGrid count={2} />
           ) : tracks.length === 0 ? (
             <p className="text-muted-foreground text-center py-10">No featured tracks yet. Be the first to upload.</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {tracks.map(track => <TrackCard key={track.id} track={track} />)}
             </div>
           )}
         </section>
 
         <section className="max-w-6xl mx-auto px-4 pb-16">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-display text-3xl text-white flex items-center gap-2 tracking-wide">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="font-display text-2xl md:text-3xl text-white flex items-center gap-2 tracking-wide">
               <span className="inline-flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[var(--magenta)] live-pulse" />
                 LIVE NOW
@@ -196,8 +153,8 @@ export default function Home() {
             <Link to="/live" className="text-[var(--lime)] hover:opacity-80 text-sm font-semibold">View all →</Link>
           </div>
           {streamsLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {Array(4).fill(0).map((_, i) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {Array(2).fill(0).map((_, i) => (
                 <div key={i} className="bg-card rounded-xl overflow-hidden animate-pulse border border-border">
                   <div className="aspect-video bg-secondary" />
                   <div className="p-3 space-y-2">
@@ -210,29 +167,11 @@ export default function Home() {
           ) : streams.length === 0 ? (
             <p className="text-muted-foreground text-center py-10">No one is live right now — claim the booth.</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {streams.map(stream => <StreamCard key={stream.id} stream={stream} />)}
             </div>
           )}
         </section>
-
-        {stats && (
-          <section className="max-w-6xl mx-auto px-4 pb-20">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {[
-                { icon: Music, label: 'Tracks', value: formatStat(stats.tracks) },
-                { icon: Users, label: 'Artists', value: formatStat(stats.artists) },
-                { icon: Radio, label: 'Streams', value: formatStat(stats.streams) },
-              ].map(({ icon: Icon, label, value }) => (
-                <div key={label} className="border border-white/10 bg-white/[0.03] rounded-xl p-5 text-center">
-                  <Icon className="w-5 h-5 mx-auto mb-2 text-[var(--lime)]" />
-                  <p className="font-display text-4xl text-white mb-0.5 tracking-wide">{value}</p>
-                  <p className="text-muted-foreground text-xs uppercase tracking-widest">{label}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
       </div>
     </PullToRefresh>
   );

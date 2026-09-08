@@ -13,6 +13,8 @@ if ('serviceWorker' in navigator && !Capacitor.isNativePlatform()) {
 }
 
 if (Capacitor.isNativePlatform()) {
+  // Keeps iPhone UI in a phone-width column when Review opens the binary on iPad.
+  document.documentElement.classList.add('native-app');
   import('@/lib/nativeBootstrap').then((m) => m.initNativeShell());
 }
 

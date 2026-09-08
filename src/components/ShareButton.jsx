@@ -1,5 +1,6 @@
 import { Share2, Check } from 'lucide-react';
 import { useState } from 'react';
+import { Capacitor } from '@capacitor/core';
 
 export default function ShareButton({ title, url, text }) {
   const [copied, setCopied] = useState(false);
@@ -11,7 +12,28 @@ export default function ShareButton({ title, url, text }) {
       url: url || window.location.href,
     };
 
-    // Use native share on mobile
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const { Share } = await import('@capacitor/share');
+        await Share.share({
+          title: shareData.title,
+          text: shareData.text,
+          url: shareData.url,
+          dialogTitle: 'Share on Kalunez',
+        });
+        try {
+          const { Haptics, ImpactStyle } = await import('@capacitor/haptics');
+          await Haptics.impact({ style: ImpactStyle.Light });
+        } catch {
+          // Optional.
+        }
+        return;
+      } catch (err) {
+        if (err?.message?.includes('cancel') || err?.message?.includes('Share canceled')) return;
+        // Fall through to web share / clipboard.
+      }
+    }
+
     if (navigator.share) {
       try {
         await navigator.share(shareData);
@@ -19,7 +41,6 @@ export default function ShareButton({ title, url, text }) {
         if (err.name !== 'AbortError') console.error('Share failed:', err);
       }
     } else {
-      // Fallback: copy link to clipboard
       try {
         await navigator.clipboard.writeText(shareData.url);
         setCopied(true);
@@ -32,6 +53,7 @@ export default function ShareButton({ title, url, text }) {
 
   return (
     <button
+      type="button"
       onClick={handleShare}
       className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border hover:bg-white/5 transition-colors text-muted-foreground hover:text-white text-sm font-medium"
     >

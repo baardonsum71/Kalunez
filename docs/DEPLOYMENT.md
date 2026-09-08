@@ -44,12 +44,7 @@ https://github.com/baardonsum71/kalunez.git
 
 3. **Push**
    ```bash
-   cd /Users/bonsum/Projects/tentacled-stream-vibe-live-3
    git push -u origin main
-   ```
-   Or run the helper script:
-   ```bash
-   chmod +x scripts/github-push.sh && ./scripts/github-push.sh
    ```
 
 ---

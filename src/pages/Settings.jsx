@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Settings as SettingsIcon, Trash2, AlertTriangle, Shield, ChevronRight, KeyRound, Eye, EyeOff, Star, Scale, Cookie, FileText, User, Camera, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/lib/AuthContext';
@@ -11,6 +12,7 @@ import LanguagePicker from '@/components/LanguagePicker';
 export default function Settings() {
   const { t } = useTranslation();
   const { user, logout, refreshUser } = useAuth();
+  const isNative = Capacitor.isNativePlatform();
   const fileRef = useRef(null);
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -268,11 +270,13 @@ export default function Settings() {
               <span className="flex items-center gap-2 text-white text-sm"><Scale className="w-4 h-4 text-teal-400" /> {t('settings.dmca')}</span>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </Link>
-            <Link to="/cookies" className="flex items-center justify-between py-2 border-b border-border hover:opacity-80 transition-opacity">
-              <span className="flex items-center gap-2 text-white text-sm"><Cookie className="w-4 h-4 text-amber-400" /> {t('settings.cookies')}</span>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </Link>
-            <CookieConsentSettings />
+            {!isNative && (
+              <Link to="/cookies" className="flex items-center justify-between py-2 border-b border-border hover:opacity-80 transition-opacity">
+                <span className="flex items-center gap-2 text-white text-sm"><Cookie className="w-4 h-4 text-amber-400" /> {t('settings.cookies')}</span>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              </Link>
+            )}
+            {!isNative && <CookieConsentSettings />}
             <button
               onClick={() => { setChangingPassword(!changingPassword); setPwError(''); setPwSuccess(false); }}
               className="flex items-center justify-between py-2 w-full hover:opacity-80 transition-opacity"

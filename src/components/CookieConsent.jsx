@@ -15,10 +15,9 @@ export default function CookieConsent() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // Native iOS/Android: no cookie/tracking banner (Apple Guideline 5.1.2).
+    // Native: never show a cookie/tracking banner (Apple 5.1.2). Essential only, no analytics.
     if (isNativeApp()) {
       setCookieConsent(CONSENT_ESSENTIAL);
-      applyConsentToServices(CONSENT_ESSENTIAL);
       setVisible(false);
       return;
     }
@@ -41,7 +40,7 @@ export default function CookieConsent() {
     setVisible(false);
   };
 
-  if (!visible) return null;
+  if (!visible || isNativeApp()) return null;
 
   return (
     <div
@@ -83,6 +82,7 @@ export default function CookieConsent() {
   );
 }
 
+/** Web-only cookie preference controls. Hidden entirely on native (no ATT / no tracking). */
 export function CookieConsentSettings() {
   const [choice, setChoice] = useState(() => getCookieConsent());
 
@@ -92,21 +92,7 @@ export function CookieConsentSettings() {
     return () => window.removeEventListener('kalunez:cookie-consent', sync);
   }, []);
 
-  if (isNativeApp()) {
-    return (
-      <div className="py-2 border-b border-border">
-        <div className="flex items-center justify-between gap-3 mb-1">
-          <span className="flex items-center gap-2 text-white text-sm">
-            <Cookie className="w-4 h-4 text-amber-400" /> Cookie preferences
-          </span>
-          <Link to="/cookies" className="text-xs text-purple-400 hover:underline">Learn more</Link>
-        </div>
-        <p className="text-muted-foreground text-xs">
-          This app uses only essential cookies. Optional analytics are not enabled on iOS/Android.
-        </p>
-      </div>
-    );
-  }
+  if (isNativeApp()) return null;
 
   const update = (value) => {
     setCookieConsent(value);

@@ -78,13 +78,13 @@ Then press ▶️ in Xcode. Note: **RevenueCat/StoreKit purchases do not work in
 3. In App Store Connect, add the build to a **TestFlight** group for internal testing first
 4. Once verified, submit for **App Store Review** with:
    - App Privacy details (what data Kalunez collects — see `src/pages/Privacy.jsx`)
-   - Screenshots (reuse `docs/acquire-screenshots/` as a starting point, resized to required device sizes)
+   - Screenshots from the live app (Pricing, Discover, Live, Go Live)
    - Demo account credentials for the reviewer (a test Kalunez login)
    - Age rating (likely 12+ or 17+ given UGC + live streaming)
 
 ## Known limitations / follow-ups
 
 - **Sign in with Apple on native**: the current `/login` flow uses Supabase's browser-redirect OAuth, which works in Capacitor's WebView but gives a slightly less native feel than Apple's native `ASAuthorizationController` sheet. If you want the fully native Apple sign-in sheet, add `@capacitor-community/apple-sign-in` and pass its identity token to `supabase.auth.signInWithIdToken({ provider: 'apple', token })` instead — not yet implemented.
-- **Background audio**: native background playback (continuing music when the app is backgrounded) requires enabling the `audio` background mode capability in Xcode and additional native audio session config — not yet implemented.
+- **Background audio**: `UIBackgroundModes` audio is enabled; lock screen / Control Center uses Media Session.
 - **Push notifications**: not implemented. Add `@capacitor/push-notifications` + APNs setup if needed later.
 - **Android**: Capacitor Android project is added — see `docs/CAPACITOR_ANDROID.md` (Play Console + `goog_...` key still required before store launch).

@@ -26,7 +26,7 @@ export const SUBSCRIPTION_PLANS = [
     price: '69 kr',
     period: '/month',
     tier: 'premium',
-    popular: false,
+    popular: true,
     features: [
       'Unlimited music uploads',
       'HD audio streaming',
@@ -70,7 +70,7 @@ export const SUBSCRIPTION_PLANS = [
     price: '899 kr',
     period: '/year',
     tier: 'premium_podcast',
-    popular: true,
+    popular: false,
     features: [
       'Everything in Premium + Podcast',
       'Save 169 kr per year',
@@ -151,21 +151,66 @@ function formatPurchaseError(err) {
     return 'Purchase canceled.';
   }
   const msg = err?.message || String(err || 'Checkout failed');
-  if (/not available|could not be found|no products|offering/i.test(msg)) {
-    return `${msg} Make sure the Paid Apps Agreement is active and the product is Cleared for Sale.`;
+  // Keep App Review / end-user copy short. Detailed config hints stay in console.
+  if (/web billing api key|invalid api key|wrong revenuecat key/i.test(msg)) {
+    console.error('[RevenueCat] API key misconfigured for this platform:', msg);
+    return 'Purchase could not start. Please close the app, reopen, and try again.';
   }
-  return msg;
+  if (/not configured|add vite_revenuecat/i.test(msg)) {
+    console.error('[RevenueCat] Missing public key in this build:', msg);
+    return 'Purchase is temporarily unavailable. Please try again later.';
+  }
+  if (/timed out|did not appear/i.test(msg)) {
+    return 'The App Store payment sheet did not open in time. Check your network and try again.';
+  }
+  if (/not available|could not be found|no products|offering|cleared for sale/i.test(msg)) {
+    console.error('[RevenueCat] Product / offering issue:', msg);
+    return 'This subscription is not available from the App Store right now. Please try again later.';
+  }
+  if (/network|offline|internet|connection/i.test(msg)) {
+    return 'Network error. Check your connection and try again.';
+  }
+  if (/signed in|sign-in|sign in/i.test(msg)) {
+    return 'Please sign in again, then retry the purchase.';
+  }
+  return 'Purchase could not be completed. Please try again.';
+}
+
+function normalizeKey(value) {
+  return String(value || '').trim();
 }
 
 function getPublicKey() {
   if (!IS_NATIVE) {
-    return import.meta.env.VITE_REVENUECAT_PUBLIC_KEY || WEB_BILLING_PUBLIC_KEY_FALLBACK;
+    // purchases-js ONLY accepts Web Billing keys (rcb_). If someone put appl_/goog_
+    // in VITE_REVENUECAT_PUBLIC_KEY, fall back so Safari/web still works.
+    const webKey = normalizeKey(import.meta.env.VITE_REVENUECAT_PUBLIC_KEY);
+    if (webKey.startsWith('rcb_')) return webKey;
+    if (webKey) {
+      console.warn(
+        '[RevenueCat] VITE_REVENUECAT_PUBLIC_KEY must be rcb_ (Web Billing). '
+        + 'appl_ belongs in VITE_REVENUECAT_IOS_PUBLIC_KEY. Using built-in web fallback.'
+      );
+    }
+    return WEB_BILLING_PUBLIC_KEY_FALLBACK;
   }
   // Capacitor shares one native plugin; store keys differ per platform.
   if (Capacitor.getPlatform() === 'android') {
-    return import.meta.env.VITE_REVENUECAT_ANDROID_PUBLIC_KEY;
+    const androidKey = normalizeKey(import.meta.env.VITE_REVENUECAT_ANDROID_PUBLIC_KEY);
+    if (androidKey && !androidKey.startsWith('goog_')) {
+      throw new Error(
+        'Wrong RevenueCat key for Android. VITE_REVENUECAT_ANDROID_PUBLIC_KEY must start with goog_.'
+      );
+    }
+    return androidKey || null;
   }
-  return import.meta.env.VITE_REVENUECAT_IOS_PUBLIC_KEY;
+  const iosKey = normalizeKey(import.meta.env.VITE_REVENUECAT_IOS_PUBLIC_KEY);
+  if (iosKey && !iosKey.startsWith('appl_')) {
+    throw new Error(
+      'Wrong RevenueCat key for iOS. VITE_REVENUECAT_IOS_PUBLIC_KEY must start with appl_ (App Store). Do not put the Web Billing rcb_ key here — and never put appl_ in VITE_REVENUECAT_PUBLIC_KEY.'
+    );
+  }
+  return iosKey || null;
 }
 
 function getMissingKeyVarName() {
