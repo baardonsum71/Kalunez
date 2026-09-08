@@ -1,56 +1,66 @@
 # Firebase setup — Kalunez (`kalunez-app`)
 
-Kalunez is migrating from Supabase to Firebase.
-
 | Layer | Status |
 |-------|--------|
 | Firebase project `kalunez-app` | Done |
-| Web app + SDK env | Done |
-| Auth (email/password) | Done (client) |
-| Firestore (`db.js`) | Done (client) |
-| Storage (audio/covers/avatars) | Rules ready — enable Storage in console if upload fails |
-| Cloud Functions (LiveKit, Mux, Stripe, RC webhook) | **Phase 2 — not deployed yet** |
-| Data copy from Supabase | Manual / export when ready |
-
-## Env
-
-Copy to `.env.local` (values also in `.env.production`):
-
-```bash
-VITE_FIREBASE_API_KEY=…
-VITE_FIREBASE_AUTH_DOMAIN=kalunez-app.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=kalunez-app
-VITE_FIREBASE_STORAGE_BUCKET=kalunez-app.firebasestorage.app
-VITE_FIREBASE_MESSAGING_SENDER_ID=878171605439
-VITE_FIREBASE_APP_ID=1:878171605439:web:c4505c33268dc66543b90a
-```
+| Auth + Firestore client | Done |
+| Storage rules | Done |
+| Cloud Functions (code) | Done — **deploy needs Blaze** |
+| Secrets in Google Secret Manager | Set before deploy |
 
 Console: https://console.firebase.google.com/project/kalunez-app
 
-## Local / deploy rules
+## 1. Upgrade to Blaze (required for Functions)
+
+https://console.firebase.google.com/project/kalunez-app/usage/details
+
+Spark cannot run Cloud Functions. Blaze stays free within free quotas for light use.
+
+## 2. Set secrets (once, after Blaze)
 
 ```bash
 npx -y firebase-tools@latest login
 npx -y firebase-tools@latest use kalunez-app
-npx -y firebase-tools@latest deploy --only firestore:rules,storage
+
+npx -y firebase-tools@latest functions:secrets:set LIVEKIT_API_KEY
+npx -y firebase-tools@latest functions:secrets:set LIVEKIT_API_SECRET
+npx -y firebase-tools@latest functions:secrets:set LIVEKIT_URL
+npx -y firebase-tools@latest functions:secrets:set MUX_TOKEN_ID
+npx -y firebase-tools@latest functions:secrets:set MUX_TOKEN_SECRET
+npx -y firebase-tools@latest functions:secrets:set STRIPE_API_KEY
+npx -y firebase-tools@latest functions:secrets:set APP_URL
+# value e.g. https://www.kalunez.com
+npx -y firebase-tools@latest functions:secrets:set REVENUECAT_WEBHOOK_AUTH
 ```
 
-## Auth note
+## 3. Deploy functions
 
-- Email/password works in the app.
-- Apple Sign-In on **web** needs Apple provider configured in Firebase Console → Authentication → Sign-in method.
-- Native app still uses email/password only (Guideline 4).
+```bash
+cd functions && npm install && cd ..
+npx -y firebase-tools@latest deploy --only functions
+```
 
-## Phase 2 (next)
+## 4. RevenueCat webhook URL
 
-Port Supabase Edge Functions under `supabase/functions/` to Cloud Functions:
+```
+https://us-central1-kalunez-app.cloudfunctions.net/handleRevenueCatWebhook
+```
 
-- `getLiveKitToken`, `getLiveKitRoomInfo`, `createMuxLiveStream`
-- `createConnectAccount`, `getArtistAccount`, `payoutArtistEarnings`
-- `handleRevenueCatWebhook`, `getArtistAnalytics`, `getPlatformAnalytics`
+Authorization header = same value as `REVENUECAT_WEBHOOK_AUTH`.
 
-Until then, Go Live token minting and Connect onboarding show a clear “not deployed yet” error.
+## Callable functions (client)
 
-## Review account
+| Name | Purpose |
+|------|---------|
+| `getLiveKitToken` | Live JWT |
+| `getLiveKitRoomInfo` | Viewer count |
+| `createMuxLiveStream` | OBS/RTMP |
+| `createConnectAccount` | Stripe Connect onboarding |
+| `getArtistAccount` | Connect status |
+| `payoutArtistEarnings` | Tip payouts |
+| `getArtistAnalytics` | Artist dashboard |
+| `getPlatformAnalytics` | Admin analytics |
 
-Create `review@kalunez.app` in Firebase Auth (email/password) for App Review after cutover.
+## Env (frontend)
+
+See `.env.example` — `VITE_FIREBASE_*` keys for project `kalunez-app`.
