@@ -5,8 +5,8 @@
 | Firebase project `kalunez-app` | Done |
 | Auth + Firestore client | Done |
 | Storage rules | Done |
-| Cloud Functions (code) | Done — **deploy needs Blaze** |
-| Secrets in Google Secret Manager | Set before deploy |
+| Cloud Functions (code) | **Deployed** to `us-central1` |
+| Secrets in Google Secret Manager | APP_URL + webhook set; LiveKit/Mux/Stripe need real values |
 
 Console: https://console.firebase.google.com/project/kalunez-app
 
@@ -40,13 +40,27 @@ cd functions && npm install && cd ..
 npx -y firebase-tools@latest deploy --only functions
 ```
 
-## 4. RevenueCat webhook URL
+## Deployed webhook
 
 ```
 https://us-central1-kalunez-app.cloudfunctions.net/handleRevenueCatWebhook
 ```
 
-Authorization header = same value as `REVENUECAT_WEBHOOK_AUTH`.
+Set Authorization header in RevenueCat to the `REVENUECAT_WEBHOOK_AUTH` secret value.
+
+## Replace placeholder secrets (LiveKit / Mux / Stripe)
+
+```bash
+npx -y firebase-tools@latest functions:secrets:set LIVEKIT_API_KEY --project kalunez-app
+npx -y firebase-tools@latest functions:secrets:set LIVEKIT_API_SECRET --project kalunez-app
+npx -y firebase-tools@latest functions:secrets:set LIVEKIT_URL --project kalunez-app
+# optional:
+npx -y firebase-tools@latest functions:secrets:set MUX_TOKEN_ID --project kalunez-app
+npx -y firebase-tools@latest functions:secrets:set MUX_TOKEN_SECRET --project kalunez-app
+npx -y firebase-tools@latest functions:secrets:set STRIPE_API_KEY --project kalunez-app
+```
+
+Then: `npx -y firebase-tools@latest deploy --only functions --force`
 
 ## Callable functions (client)
 
