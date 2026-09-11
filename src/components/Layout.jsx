@@ -1,11 +1,28 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Music, Radio, Zap, Mic2, Upload, Menu, X, ChevronLeft, Home, Settings, Tv2, BarChart2, MessageSquare, Bell, LogOut } from 'lucide-react';
+import {
+  Music,
+  Radio,
+  Zap,
+  Mic2,
+  Upload,
+  Menu,
+  X,
+  ChevronLeft,
+  Home,
+  Settings,
+  Tv2,
+  BarChart2,
+  MessageSquare,
+  Bell,
+  LogOut,
+} from 'lucide-react';
 import FloatingPlayer from '@/components/FloatingPlayer';
 import Footer from '@/components/Footer';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { Capacitor } from '@capacitor/core';
 import { filterRows } from '@/lib/db';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -18,26 +35,43 @@ export default function Layout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
   const scrollPositions = useRef({});
+  // App Review often opens iPhone binaries on iPad — keep the compact header
+  // so top controls never overflow/hide (Guideline 4).
+  const forceCompactNav = Capacitor.isNativePlatform();
 
-  const navLinks = useMemo(() => [
-    { label: t('nav.discover'), href: '/discover', icon: Zap },
-    { label: t('nav.library'), href: '/library', icon: Music },
-    { label: t('nav.live'), href: '/live', icon: Radio },
-    { label: t('nav.forArtists'), href: '/for-artists', icon: Mic2 },
-    { label: t('nav.upload'), href: '/upload', icon: Upload },
-    { label: t('nav.goLive'), href: '/go-live', icon: Tv2 },
-    { label: t('nav.dashboard'), href: '/artist-dashboard', icon: BarChart2 },
-    { label: t('nav.messages'), href: '/messages', icon: MessageSquare },
-    { label: t('nav.notifications'), href: '/notifications', icon: Bell },
-    { label: t('nav.settings'), href: '/settings', icon: Settings },
-  ], [t]);
+  const primaryLinks = useMemo(
+    () => [
+      { label: t('nav.discover'), href: '/discover', icon: Zap },
+      { label: t('nav.library'), href: '/library', icon: Music },
+      { label: t('nav.live'), href: '/live', icon: Radio },
+      { label: t('nav.forArtists'), href: '/for-artists', icon: Mic2 },
+    ],
+    [t],
+  );
 
-  const bottomNavLinks = useMemo(() => [
-    { label: t('nav.home'), href: '/', icon: Home },
-    { label: t('nav.discover'), href: '/discover', icon: Zap },
-    { label: t('nav.library'), href: '/library', icon: Music },
-    { label: t('nav.live'), href: '/live', icon: Radio },
-  ], [t]);
+  const moreLinks = useMemo(
+    () => [
+      { label: t('nav.upload'), href: '/upload', icon: Upload },
+      { label: t('nav.goLive'), href: '/go-live', icon: Tv2 },
+      { label: t('nav.dashboard'), href: '/artist-dashboard', icon: BarChart2 },
+      { label: t('nav.messages'), href: '/messages', icon: MessageSquare },
+      { label: t('nav.notifications'), href: '/notifications', icon: Bell },
+      { label: t('nav.settings'), href: '/settings', icon: Settings },
+    ],
+    [t],
+  );
+
+  const menuLinks = useMemo(() => [...primaryLinks, ...moreLinks], [primaryLinks, moreLinks]);
+
+  const bottomNavLinks = useMemo(
+    () => [
+      { label: t('nav.home'), href: '/', icon: Home },
+      { label: t('nav.discover'), href: '/discover', icon: Zap },
+      { label: t('nav.library'), href: '/library', icon: Music },
+      { label: t('nav.live'), href: '/live', icon: Radio },
+    ],
+    [t],
+  );
 
   const { data: notifications = [] } = useQuery({
     queryKey: ['notifications-badge', user?.email],
@@ -47,7 +81,7 @@ export default function Layout() {
     staleTime: 15000,
   });
 
-  const isRootScreen = ROOT_SCREENS.some(route => location.pathname === route);
+  const isRootScreen = ROOT_SCREENS.some((route) => location.pathname === route);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -64,6 +98,10 @@ export default function Layout() {
     }
   }, [location.pathname]);
 
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
+
   return (
     <div className="min-h-screen bg-background font-body">
       <nav
@@ -71,7 +109,7 @@ export default function Layout() {
         aria-label={t('nav.mainNav')}
       >
         {!isRootScreen && (
-          <div className="md:hidden flex items-center h-11 px-3 gap-2">
+          <div className={`${forceCompactNav ? 'flex' : 'md:hidden flex'} items-center h-11 px-3 gap-2`}>
             <button
               type="button"
               onClick={() => navigate(-1)}
@@ -86,38 +124,32 @@ export default function Layout() {
           </div>
         )}
 
-        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 select-none" aria-label="Kalunez home">
+        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+          <Link to="/" className="flex items-center gap-2 select-none shrink-0" aria-label="Kalunez home">
             <span className="font-display text-2xl tracking-wide logo-gradient-text">KALUNEZ</span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-1">
-            {navLinks.map(({ label, href }) => {
-              const unread = href === '/notifications' ? notifications.length : 0;
-              return (
+          {!forceCompactNav && (
+            <div className="hidden md:flex items-center gap-1 flex-1 justify-center">
+              {primaryLinks.map(({ label, href }) => (
                 <Link
                   key={href}
                   to={href}
-                  className={`select-none px-3 py-1.5 rounded-md text-sm font-medium transition-colors relative ${
+                  className={`select-none px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                     location.pathname === href
                       ? 'text-[var(--lime)] bg-white/5'
                       : 'text-muted-foreground hover:text-white hover:bg-white/5'
                   }`}
                 >
                   {label}
-                  {unread > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 bg-destructive rounded-full text-white text-xs flex items-center justify-center font-bold px-1">
-                      {unread > 99 ? '99+' : unread}
-                    </span>
-                  )}
                 </Link>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          )}
 
           <button
             type="button"
-            className="select-none md:hidden text-muted-foreground hover:text-white p-2"
+            className={`select-none text-muted-foreground hover:text-white p-2 ${forceCompactNav ? '' : 'md:hidden'}`}
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={menuOpen}
@@ -127,22 +159,32 @@ export default function Layout() {
         </div>
 
         {menuOpen && (
-          <div className="md:hidden border-t border-border bg-background/95 px-4 py-3 flex flex-col gap-1">
-            {navLinks.map(({ label, href, icon: Icon }) => (
-              <Link
-                key={href}
-                to={href}
-                onClick={() => setMenuOpen(false)}
-                className={`select-none flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  location.pathname === href
-                    ? 'text-[var(--lime)] bg-white/5'
-                    : 'text-muted-foreground hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {label}
-              </Link>
-            ))}
+          <div
+            className={`${forceCompactNav ? 'flex' : 'md:hidden flex'} border-t border-border bg-background/95 px-4 py-3 flex-col gap-1`}
+          >
+            {menuLinks.map(({ label, href, icon: Icon }) => {
+              const unread = href === '/notifications' ? notifications.length : 0;
+              return (
+                <Link
+                  key={href}
+                  to={href}
+                  onClick={() => setMenuOpen(false)}
+                  className={`select-none flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors relative ${
+                    location.pathname === href
+                      ? 'text-[var(--lime)] bg-white/5'
+                      : 'text-muted-foreground hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {label}
+                  {unread > 0 && (
+                    <span className="ml-auto min-w-5 h-5 bg-destructive rounded-full text-white text-xs flex items-center justify-center font-bold px-1">
+                      {unread > 99 ? '99+' : unread}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
             {isAuthenticated ? (
               <button
                 type="button"
@@ -168,7 +210,7 @@ export default function Layout() {
         )}
       </nav>
 
-      <main className="pt-14 pb-20 md:pb-0 overscroll-none">
+      <main className={`pt-14 overscroll-none ${forceCompactNav ? 'pb-20' : 'pb-20 md:pb-0'}`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
@@ -186,10 +228,10 @@ export default function Layout() {
       <FloatingPlayer />
 
       <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-t border-white/10 pb-[--safe-bottom]"
+        className={`${forceCompactNav ? 'flex' : 'md:hidden'} fixed bottom-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-t border-white/10 pb-[--safe-bottom]`}
         aria-label="Mobile navigation"
       >
-        <div className="flex">
+        <div className="flex w-full">
           {bottomNavLinks.map(({ label, href, icon: Icon }) => {
             const active = href === '/' ? location.pathname === '/' : location.pathname.startsWith(href);
             return (

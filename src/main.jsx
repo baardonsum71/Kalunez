@@ -13,6 +13,8 @@ if ('serviceWorker' in navigator && !Capacitor.isNativePlatform()) {
 }
 
 if (Capacitor.isNativePlatform()) {
+  // Keeps a phone-width layout when App Review opens the iPhone binary on iPad.
+  document.documentElement.classList.add('native-app');
   import('@/lib/nativeBootstrap').then((m) => m.initNativeShell());
 }
 
