@@ -1,6 +1,6 @@
-# App Store Resolution Center — build 24
+# App Store Resolution Center — build 25
 
-Paste after uploading build **24**.
+Paste after uploading build **25**.
 
 ---
 
@@ -22,7 +22,7 @@ We submitted the subscription products for review with this binary. They are Cle
 4. Complete the App Store payment sheet
 
 ## Guideline 4 — Design (iPad Air)
-Kalunez is an **iPhone-only** app. Build 24 sets `TARGETED_DEVICE_FAMILY = 1` (iPhone).
+Kalunez is an **iPhone-only** app. Build 25 sets `TARGETED_DEVICE_FAMILY = 1` (iPhone).
 
 We also:
 - Require full screen / portrait-only

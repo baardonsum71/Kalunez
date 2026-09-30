@@ -1,8 +1,8 @@
-# Resubmit checklist — build 24 (IAP + iPad nav)
+# Resubmit checklist — build 25 (IAP + iPad nav)
 
 ## Code (this PR)
 - [x] iPhone only (`TARGETED_DEVICE_FAMILY = 1`)
-- [x] Build number **24**
+- [x] Build number **25**
 - [x] Compact native nav (no overflowing top links)
 - [x] Phone-width column on large canvases
 - [x] Pricing grid decluttered
